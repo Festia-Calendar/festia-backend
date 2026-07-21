@@ -1,5 +1,5 @@
 
-import { PrismaClient, Gender, UserStatus, ActivityPublishStatus, ActivityApproveStatus,  } from "@prisma/client";
+import { PrismaClient, Gender, UserStatus, ActivityPublishStatus, ActivityApproveStatus, ActivityType } from "@prisma/client";
 
 import bcrypt from "bcrypt";
 
@@ -84,6 +84,12 @@ async function main() {
       tagline: "Music Festival 2026",
       description: "กิจกรรมดนตรีและความบันเทิง",
 
+      activityType: ActivityType.PERFORMANCE_MUSIC,
+
+      phone: "0812345678",
+      lineUrl: "https://line.me/ti/p/@festia",
+      facebookUrl: "https://www.facebook.com/festia",
+
       price: 500,
 
       statusActivity: ActivityPublishStatus.PUBLISH,
@@ -96,6 +102,7 @@ async function main() {
       updatedById: admin.id,
     },
   });
+
 
 
   // ======================

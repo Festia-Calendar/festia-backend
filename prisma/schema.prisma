@@ -51,6 +51,22 @@ enum UserStatus {
 }
 
 /**
+ * คำอธิบาย : เก็บสถานะ ประเภทของกิจกรรม
+ * Input : CULTURAL_FESTIVAL, EXHIBITION_ART, PERFORMANCE_MUSIC, FOOD_DRINK_FESTIVAL, MARKET_FAIR, TRAINING_SEMINAR, SPORT_RECREATION, COMMUNITY_TOURISM
+ * Output : ประเภทของกิจกรรม
+ */
+enum ActivityType {
+  CULTURAL_FESTIVAL       // เทศกาลประเพณีและวัฒนธรรม
+  EXHIBITION_ART          // นิทรรศการและศิลปะ
+  PERFORMANCE_MUSIC       // การแสดง ดนตรี และความบันเทิง
+  FOOD_DRINK_FESTIVAL     // เทศกาลอาหารและเครื่องดื่ม
+  MARKET_FAIR             // ตลาดนัดช้อปปิ้ง และงานแฟร์
+  TRAINING_SEMINAR        // การอบรมและเสวนา
+  SPORT_RECREATION        // กีฬา นันทนาการ
+  COMMUNITY_TOURISM       // ท่องเที่ยวชุมชน
+}
+
+/**
  * คำอธิบาย : เก็บข้อมูล user
  * Input : roleId, username, email, password, profile
  * Output : ผู้ใช้งานระบบ
@@ -105,6 +121,10 @@ model Activity {
   name           String?                @map("pk_name") @db.VarChar(100)
   tagline        String?                @map("pk_tagline") @db.VarChar(500)
   description    String?                @map("pk_description") @db.VarChar(500)
+  activityType   ActivityType?          @map("pk_activity_type")
+  phone          String?                @map("pk_phone") @db.VarChar(20)
+  lineUrl        String?                @map("pk_line_url") @db.VarChar(255)
+  facebookUrl    String?                @map("pk_facebook_url") @db.VarChar(255)
   price          Decimal?               @map("pk_price") @db.Decimal(10, 2)
   statusActivity ActivityPublishStatus  @map("pk_status_activity")
   statusApprove  ActivityApproveStatus? @map("pk_status_approve")
@@ -117,6 +137,7 @@ model Activity {
   updatedAt      DateTime               @updatedAt @map("pk_updated_at") @db.DateTime(0)
   isDeleted      Boolean                @default(false) @map("pk_is_deleted")
   deleteAt       DateTime?              @map("pk_delete_at") @db.Timestamp(0)
+  viewCount      Int                    @default(0) @map("pk_view_count")
 
   // Relations
   location  Location? @relation(fields: [locationId], references: [id])
@@ -128,6 +149,7 @@ model Activity {
   @@index([updatedById])
   @@map("activities")
 }
+
 
 /**
  * คำอธิบาย : เก็บข้อมูลกิจกรรมย่อยภายใน Activity
