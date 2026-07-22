@@ -108,3 +108,119 @@ export const getActivityDetailByAdmin = async (
     );
   }
 };
+
+export const createActivityBySuperAdmin = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const activity =
+      await ActivityService.createActivityBySuperAdmin(
+        req.user.id,
+        req.body
+      );
+    return createResponse(
+      res,
+      201,
+      "Create activity successfully",
+      activity
+    );
+  } catch (error) {
+    return createErrorResponse(
+      res,
+      400,
+      (error as Error).message
+    );
+  }
+};
+
+/*
+ * คำอธิบาย : สร้างกิจกรรมโดย Admin
+ * Input : req.body ข้อมูลกิจกรรม
+ * Output:
+ * 201 - สร้างกิจกรรมสำเร็จ
+ * 400 - Error message
+ */
+export const createActivityByAdmin = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const activity =
+      await ActivityService.createActivityByAdmin(
+        req.user.id,
+        req.body
+      );
+    return createResponse(
+      res,
+      201,
+      "Create activity successfully",
+      activity
+    );
+  } catch (error) {
+    return createErrorResponse(
+      res,
+      400,
+      (error as Error).message
+    );
+  }
+};
+
+/*
+ * คำอธิบาย : ลบกิจกรรมโดย SuperAdmin
+ * Input : params.id - รหัสกิจกรรม
+ * Output : กิจกรรมถูกลบสำเร็จ
+*/
+export const deleteActivityBySuperAdmin = async(
+  req:Request,
+  res:Response
+)=>{
+  try{
+    const activity =
+      await ActivityService.deleteActivityBySuperAdmin(
+        Number(req.params.id)
+      );
+    return createResponse(
+      res,
+      200,
+      "Delete activity successfully",
+      activity
+    );
+  }catch(error){
+    return createErrorResponse(
+      res,
+      400,
+      (error as Error).message
+    );
+  }
+};
+
+/*
+ * คำอธิบาย : ลบกิจกรรมโดย Admin
+ * Input : params.id - รหัสกิจกรรม
+ * Output : กิจกรรมถูกลบสำเร็จ
+ */
+export const deleteActivityByAdmin = async(
+  req:Request,
+  res:Response
+)=>{
+  try{
+    const activity =
+      await ActivityService.deleteActivityByAdmin(
+        Number(req.params.id),
+        req.user.id
+      );
+    return createResponse(
+      res,
+      200,
+      "Delete activity successfully",
+      activity
+    );
+  }catch(error){
+    return createErrorResponse(
+      res,
+      400,
+      (error as Error).message
+    );
+  }
+};
