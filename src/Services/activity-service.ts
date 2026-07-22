@@ -2,36 +2,124 @@
  * คำอธิบาย :
  * Service สำหรับจัดการข้อมูล Activity
  * ใช้ Prisma ORM ในการติดต่อฐานข้อมูล
- */
-
-import {ActivityApproveStatus, ActivityPublishStatus,} from "@prisma/client";
+*/
 import prisma from "../Services/database-service.js";
 
-/*
- * คำอธิบาย :
- * ดึงข้อมูลกิจกรรมทั้งหมดที่สามารถแสดงผลได้
- *
- * Input :
- * ไม่มี
- *
- * Output :
- * รายการ Activity พร้อม Location และ Schedule
- */
-export async function getActivities() {
-
-  const activityLists = await prisma.activity.findMany({
-
+export const getActivityBySuperAdmin = async () => {
+  return await prisma.activity.findMany({
     where: {
       isDeleted: false,
     },
-
     include: {
       location: true,
       schedules: true,
+      createdBy: {
+        select: {
+          id: true,
+          username: true,
+          fname: true,
+          lname: true,
+          email: true,
+        },
+      },
     },
-
   });
+};
 
-  return activityLists;
+export const getActivityByAdmin = async (userId: number) => {
+  return await prisma.activity.findMany({
+    where: {
+      isDeleted: false,
+      createById: userId,
+    },
+    include: {
+      location: true,
+      schedules: true,
+      createdBy: {
+        select: {
+          id: true,
+          username: true,
+          fname: true,
+          lname: true,
+          email: true,
+        },
+      },
+    },
+  });
+};
 
-}
+export const getActivityDetailByAdmin = async (
+  id: number,
+  userId: number
+) => {
+  return await prisma.activity.findFirst({
+    where: {
+      id,
+      isDeleted: false,
+      createById: userId,
+    },
+    include: {
+      location: true,
+      schedules: {
+        orderBy: {
+          startDateTime: "asc",
+        },
+      },
+      createdBy: {
+        select: {
+          id: true,
+          username: true,
+          fname: true,
+          lname: true,
+          email: true,
+        },
+      },
+      updatedBy: {
+        select: {
+          id: true,
+          username: true,
+          fname: true,
+          lname: true,
+          email: true,
+        },
+      },
+    },
+  });
+};
+
+export const getActivityDetailBySuperadmin = async (
+  id: number
+) => {
+  return await prisma.activity.findFirst({
+    where: {
+      id,
+      isDeleted: false,
+    },
+    include: {
+      location: true,
+      schedules: {
+        orderBy: {
+          startDateTime: "asc",
+        },
+      },
+      createdBy: {
+        select: {
+          id: true,
+          username: true,
+          fname: true,
+          lname: true,
+          email: true,
+        },
+      },
+      updatedBy: {
+        select: {
+          id: true,
+          username: true,
+          fname: true,
+          lname: true,
+          email: true,
+        },
+      },
+    },
+  });
+};
