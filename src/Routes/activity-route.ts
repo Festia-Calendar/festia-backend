@@ -4,21 +4,10 @@ import * as ActivitiyController from "../Controllers/activity-controller.js";
 const activityRoutes = Router();
 
 /*
- * คำอธิบาย :
- * Route สำหรับดึงรายการกิจกรรมทั้งหมด
- *
- * Method :
- * GET
- *
- * Endpoint :
- * /api/shared/activities
- *
- * Input :
- * ไม่มี
- *
- * Output :
- * รายการกิจกรรมทั้งหมด
- */
+ * คำอธิบาย :Route สำหรับดึงรายการกิจกรรมทั้งหมด
+ * Input : ไม่มี
+ * Output : รายการกิจกรรมทั้งหมด
+*/
 activityRoutes.get(
   "/activities",
   ActivitiyController.listActivities
