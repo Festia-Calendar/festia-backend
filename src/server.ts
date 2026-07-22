@@ -1,9 +1,11 @@
 import express from "express";
 import rootRouter from "./Routes/index-routes.js";
+import cookieParser from "cookie-parser";
 
 const app = express();
 
 app.use(express.json());
+app.use(cookieParser());
 
 const port = process.env.PORT || 3000;
 app.use("/api", rootRouter);
