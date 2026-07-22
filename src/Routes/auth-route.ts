@@ -23,4 +23,14 @@ authRoutes.post(
   AuthController.logout
 );
 
+/*
+ * คำอธิบาย : Route สำหรับเช็คสถานะ Login
+*/
+authRoutes.get(
+  "/me",
+  authMiddleware,
+  AuthController.me
+);
+
 export { authRoutes };
+

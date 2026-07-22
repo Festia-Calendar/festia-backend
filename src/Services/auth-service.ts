@@ -81,3 +81,19 @@ export async function logout() {
     },
   };
 }
+
+export async function getProfile(userId: number) {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    include: { role: true },
+  });
+  if (!user) throw new Error("User not found");
+  return {
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      fname: user.fname,
+      lname: user.lname,
+      role: user.role.name,
+  };
+}

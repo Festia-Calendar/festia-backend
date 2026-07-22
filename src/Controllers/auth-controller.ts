@@ -69,3 +69,27 @@ export const logout = async (
     );
   }
 };
+
+export const me = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const user = await AuthService.getProfile(
+      req.user.id
+    );
+    return createResponse(
+      res,
+      200,
+      "check successful",
+      user
+    );
+  } catch (error) {
+    return createErrorResponse(
+      res,
+      400,
+      (error as Error).message
+    );
+
+  }
+};

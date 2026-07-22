@@ -5,6 +5,6 @@ import { authRoutes } from "./auth-route.js";
 const rootRouter: Router = Router();
 
 rootRouter.use(activityRoutes);
-rootRouter.use(authRoutes);
+rootRouter.use("/auth",authRoutes);
 
 export default rootRouter;
