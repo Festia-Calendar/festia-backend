@@ -926,3 +926,70 @@ export const getActivityDetailForHome = async (
     relatedActivities
   };
 };
+
+/*
+ * คำอธิบาย : ดึงรายการกิจกรรมสำหรับหน้า Home ตามเดือนปัจจุบัน
+ * Input : -
+ * Output : รายการกิจกรรมที่จัดในเดือนปัจจุบัน
+ */
+export const getHomeActivity = async () => {
+  const now = new Date();
+  const startOfMonth = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    1
+  );
+  const endOfMonth = new Date(
+    now.getFullYear(),
+    now.getMonth() + 1,
+    0,
+    23,
+    59,
+    59
+  );
+  return await prisma.activity.findMany({
+    where: {
+      isDeleted: false,
+      statusApprove: "APPROVE",
+      statusActivity: "PUBLISH",
+      startDate: {
+        gte: startOfMonth,
+        lte: endOfMonth,
+      },
+    },
+    orderBy: {
+      startDate: "asc"
+    },
+    select: {
+      id: true,
+      name: true,
+      tagline: true,
+      startDate: true,
+      dueDate: true,
+      price: true,
+      phone: true,
+      lineUrl: true,
+      facebookUrl: true,
+      activityFile: {
+        where: {
+          type: "COVER"
+        },
+        select: {
+          id: true,
+          filePath: true
+        },
+        take: 1
+      },
+      location: {
+        select: {
+          name: true,
+          province: true,
+          district: true,
+          subDistrict: true,
+          latitude: true,
+          longitude: true,
+        }
+      }
+    }
+  });
+};

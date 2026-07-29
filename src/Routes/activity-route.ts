@@ -151,4 +151,12 @@ activityRoutes.get(
   ActivityController.getActivityDetailForHome
 );
 
+/*
+ * คำอธิบาย : หน้า Home ดึงกิจกรรมเดือนปัจจุบัน
+ */
+activityRoutes.get(
+  "/home/activities",
+  ActivityController.getHomeActivity
+);
+
 export { activityRoutes };

@@ -433,3 +433,28 @@ async (
     );
   }
 };
+
+/*
+ * คำอธิบาย : หน้า Home ดึงกิจกรรมเดือนปัจจุบัน
+ */
+export const getHomeActivity = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const activities =
+      await ActivityService.getHomeActivity();
+    return createResponse(
+      res,
+      200,
+      "Get home activities successfully",
+      activities
+    );
+  } catch(error) {
+    return createErrorResponse(
+      res,
+      400,
+      (error as Error).message
+    );
+  }
+};
