@@ -458,3 +458,60 @@ export const getHomeActivity = async (
     );
   }
 };
+
+/*
+ * คำอธิบาย : Admin ดูรายการกิจกรรม Draft ของตัวเอง
+ */
+export const getDraftActivityByAdmin = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const activities =
+      await ActivityService.getDraftActivityByAdmin(
+        req.user.id
+      );
+    return createResponse(
+      res,
+      200,
+      "Get draft activities successfully",
+      activities
+    );
+  } catch(error) {
+    return createErrorResponse(
+      res,
+      400,
+      (error as Error).message
+    );
+  }
+};
+
+/*
+ * คำอธิบาย : Admin ลบกิจกรรม Draft ของตัวเอง
+ * Input : params.id - รหัสกิจกรรม
+ * Output : กิจกรรมถูกลบสำเร็จ
+ */
+export const deleteDraftActivityByAdmin = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const activity =
+      await ActivityService.deleteDraftActivityByAdmin(
+        Number(req.params.id),
+        req.user.id
+      );
+    return createResponse(
+      res,
+      200,
+      "Delete draft activity successfully",
+      activity
+    );
+  } catch(error) {
+    return createErrorResponse(
+      res,
+      400,
+      (error as Error).message
+    );
+  }
+};

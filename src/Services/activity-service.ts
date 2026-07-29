@@ -993,3 +993,72 @@ export const getHomeActivity = async () => {
     }
   });
 };
+
+/*
+ * คำอธิบาย : Admin ดึงรายการกิจกรรม Draft ของตัวเอง
+ * Input : userId - เจ้าของกิจกรรม
+ * Output : ชื่อ ประเภท สถานที่ และสถานะ
+ */
+export const getDraftActivityByAdmin = async (
+  userId: number
+) => {
+  return await prisma.activity.findMany({
+    where: {
+      isDeleted: false,
+      createById: userId,
+      statusActivity: "DRAFT",
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+    select: {
+      id: true,
+      name: true,
+      activityType: true,
+      statusActivity: true,
+      statusApprove: true,
+      location: {
+        select: {
+          name: true,
+          province: true,
+          district: true,
+          subDistrict: true,
+        }
+      }
+    }
+  });
+};
+
+/*
+ * คำอธิบาย : Admin ลบกิจกรรม Draft ของตัวเอง
+ * Input : activityId - รหัสกิจกรรม, userId - เจ้าของกิจกรรม
+ * Output : ข้อมูลกิจกรรมที่ถูกลบ
+ */
+export const deleteDraftActivityByAdmin = async (
+  activityId: number,
+  userId: number
+) => {
+  const activity =
+    await prisma.activity.findFirst({
+      where: {
+        id: activityId,
+        createById: userId,
+        isDeleted: false,
+        statusActivity: "DRAFT",
+      },
+    });
+  if (!activity) {
+    throw new Error(
+      "ไม่พบกิจกรรม Draft หรือไม่มีสิทธิ์ลบ"
+    );
+  }
+  return prisma.activity.update({
+    where: {
+      id: activityId,
+    },
+    data: {
+      isDeleted: true,
+      deleteAt: new Date(),
+    },
+  });
+};

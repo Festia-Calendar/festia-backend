@@ -5,6 +5,26 @@ import { authMiddleware, allowRoles } from "../Middleware/auth-middleware.js";
 const activityRoutes = Router();
 
 /*
+ * คำอธิบาย : Admin ดึงรายการกิจกรรม Draft
+ */
+activityRoutes.get(
+  "/admin/activity/draft",
+  authMiddleware,
+  allowRoles("ADMIN"),
+  ActivityController.getDraftActivityByAdmin
+);
+
+/*
+ * คำอธิบาย : Admin ลบกิจกรรม Draft ของตัวเอง
+ */
+activityRoutes.delete(
+  "/admin/activity/draft/:id",
+  authMiddleware,
+  allowRoles("ADMIN"),
+  ActivityController.deleteDraftActivityByAdmin
+);
+
+/*
  * คำอธิบาย : SuperAdmin ดูรายการกิจกรรมรออนุมัติ
  */
 activityRoutes.get(
