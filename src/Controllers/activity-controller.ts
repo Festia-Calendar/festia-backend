@@ -290,3 +290,62 @@ export const updateActivityByAdmin = async (
     );
   }
 };
+
+/*
+ * คำอธิบาย : SuperAdmin อนุมัติกิจกรรม
+ */
+export const approveActivityBySuperAdmin =
+async(
+  req:Request,
+  res:Response
+)=>{
+  try{
+    const activity =
+      await ActivityService.approveActivityBySuperAdmin(
+        Number(req.params.id),
+        req.user.id
+      );
+    return createResponse(
+      res,
+      200,
+      "Approve activity successfully",
+      activity
+    );
+  }catch(error){
+    return createErrorResponse(
+      res,
+      400,
+      (error as Error).message
+    );
+  }
+};
+
+/*
+ * คำอธิบาย : SuperAdmin Reject กิจกรรม
+ */
+export const rejectActivityBySuperAdmin =
+async(
+  req:Request,
+  res:Response
+)=>{
+  try{
+    const activity =
+      await ActivityService.rejectActivityBySuperAdmin(
+        Number(req.params.id),
+        req.user.id,
+        req.body.reason
+      );
+    return createResponse(
+      res,
+      200,
+      "Reject activity successfully",
+      activity
+    );
+  }catch(error){
+    return createErrorResponse(
+      res,
+      400,
+      (error as Error).message
+    );
+  }
+};

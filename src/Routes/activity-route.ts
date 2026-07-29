@@ -103,4 +103,24 @@ activityRoutes.put(
   ActivityController.updateActivityBySuperAdmin
 );
 
+/*
+ * คำอธิบาย : SuperAdmin อนุมัติกิจกรรม
+ */
+activityRoutes.patch(
+  "/superadmin/activity/:id/approve",
+  authMiddleware,
+  allowRoles("SUPERADMIN"),
+  ActivityController.approveActivityBySuperAdmin
+);
+
+/*
+ * คำอธิบาย : SuperAdmin ปฏิเสธกิจกรรม
+ */
+activityRoutes.patch(
+  "/superadmin/activity/:id/reject",
+  authMiddleware,
+  allowRoles("SUPERADMIN"),
+  ActivityController.rejectActivityBySuperAdmin
+);
+
 export { activityRoutes };

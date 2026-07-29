@@ -615,3 +615,92 @@ export const updateActivityBySuperAdmin = async (
     }
   });
 };
+
+/*
+ * คำอธิบาย : SuperAdmin อนุมัติกิจกรรม
+ * Input : id - รหัสกิจกรรม, userId - ผู้อนุมัติ
+ * Output : กิจกรรมที่อนุมัติแล้ว
+ */
+export const approveActivityBySuperAdmin = async (
+  id: number,
+  userId: number
+) => {
+  const activity =
+    await prisma.activity.findFirst({
+      where: {
+        id,
+        isDeleted: false,
+      },
+    });
+  if (!activity) {
+    throw new Error("Activity not found");
+  }
+  if (
+    activity.statusApprove !== "PENDING"
+  ) {
+    throw new Error(
+      "Activity already processed"
+    );
+  }
+  return prisma.activity.update({
+    where:{
+      id
+    },
+    data:{
+      statusApprove:
+        "APPROVE",
+      statusActivity:
+        "PUBLISH",
+      updatedById:
+        userId,
+      rejectReason:
+        null
+    }
+  });
+};
+
+/*
+ * คำอธิบาย : SuperAdmin ปฏิเสธกิจกรรม
+ * Input : id - รหัสกิจกรรม, userId - ผู้ตรวจสอบ, reason - เหตุผล
+ * Output : กิจกรรมที่ถูก Reject
+ */
+export const rejectActivityBySuperAdmin = async (
+  id:number,
+  userId:number,
+  reason:string
+)=>{
+  const activity =
+    await prisma.activity.findFirst({
+      where:{
+        id,
+        isDeleted:false
+      }
+    });
+  if(!activity){
+    throw new Error(
+      "Activity not found"
+    );
+  }
+  if(
+    activity.statusApprove !== "PENDING"
+  ){
+    throw new Error(
+      "Activity already processed"
+    );
+  }
+  return prisma.activity.update({
+    where:{
+      id
+    },
+    data:{
+      statusApprove:
+        "REJECTED",
+      statusActivity:
+        "UNPUBLISH",
+      rejectReason:
+        reason,
+      updatedById:
+        userId
+    }
+  });
+};
