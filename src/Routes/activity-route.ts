@@ -5,6 +5,26 @@ import { authMiddleware, allowRoles } from "../Middleware/auth-middleware.js";
 const activityRoutes = Router();
 
 /*
+ * คำอธิบาย : SuperAdmin ดูรายการกิจกรรมรออนุมัติ
+ */
+activityRoutes.get(
+  "/superadmin/activity-requests",
+  authMiddleware,
+  allowRoles("SUPERADMIN"),
+  ActivityController.getRequestActivitiesForSuperAdmin
+);
+
+/*
+ * คำอธิบาย : SuperAdmin ดูรายละเอียดกิจกรรมรออนุมัติ
+ */
+activityRoutes.get(
+  "/superadmin/activity-requests/:id",
+  authMiddleware,
+  allowRoles("SUPERADMIN"),
+  ActivityController.getRequestActivityDetailForSuperAdmin
+);
+
+/*
  * คำอธิบาย : Route สำหรับ SuperAdmin ดึงรายการกิจกรรมทั้งหมด
 */
 activityRoutes.get(
@@ -107,7 +127,7 @@ activityRoutes.put(
  * คำอธิบาย : SuperAdmin อนุมัติกิจกรรม
  */
 activityRoutes.patch(
-  "/superadmin/activity/:id/approve",
+  "/superadmin/activity-requests/:id/approve",
   authMiddleware,
   allowRoles("SUPERADMIN"),
   ActivityController.approveActivityBySuperAdmin
@@ -117,7 +137,7 @@ activityRoutes.patch(
  * คำอธิบาย : SuperAdmin ปฏิเสธกิจกรรม
  */
 activityRoutes.patch(
-  "/superadmin/activity/:id/reject",
+  "/superadmin/activity-requests/:id/reject",
   authMiddleware,
   allowRoles("SUPERADMIN"),
   ActivityController.rejectActivityBySuperAdmin

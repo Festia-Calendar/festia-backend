@@ -704,3 +704,90 @@ export const rejectActivityBySuperAdmin = async (
     }
   });
 };
+
+/*
+ * คำอธิบาย : SuperAdmin ดึงรายการกิจกรรมที่รออนุมัติ
+ * Input : -
+ * Output : รายการกิจกรรม Pending สำหรับหน้าอนุมัติ
+ */
+export const getRequestsActivitiesForSuperAdmin = async () => {
+  return await prisma.activity.findMany({
+    where: {
+      isDeleted: false,
+      statusApprove: "PENDING",
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+    select: {
+      id: true,
+      name: true,
+      activityType: true,
+      startDate: true,
+      dueDate: true,
+      statusApprove: true,
+      location: {
+        select: {
+          name: true,
+          province: true,
+          district: true,
+          subDistrict: true,
+        }
+      },
+    },
+  });
+};
+
+/*
+ * คำอธิบาย : SuperAdmin ดูรายละเอียดกิจกรรมที่รออนุมัติ
+ * Input : id - รหัสกิจกรรม
+ * Output : รายละเอียดกิจกรรม Pending
+ */
+export const getRequestsActivityDetailForSuperAdmin = async (
+  id: number
+) => {
+  const activity =
+    await prisma.activity.findFirst({
+      where: {
+        id,
+        isDeleted: false,
+        statusApprove: "PENDING",
+      },
+      include: {
+        location: true,
+        activityFile: true,
+        schedules: {
+          orderBy: {
+            startDateTime: "asc",
+          },
+          include: {
+            files: true,
+          },
+        },
+        createdBy: {
+          select: {
+            id: true,
+            username: true,
+            fname: true,
+            lname: true,
+            email: true,
+          },
+        },
+        updatedBy: {
+          select: {
+            id: true,
+            username: true,
+            fname: true,
+            lname: true,
+            email: true,
+          },
+        },
+      },
+    });
+  if(!activity){
+    throw new Error(
+      "ไม่พบกิจกรรมที่รออนุมัติ"
+    );
+  }
+  return activity;
+};

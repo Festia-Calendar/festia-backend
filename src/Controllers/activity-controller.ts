@@ -171,11 +171,11 @@ export const createActivityByAdmin = async (
  * Input : params.id - รหัสกิจกรรม
  * Output : กิจกรรมถูกลบสำเร็จ
 */
-export const deleteActivityBySuperAdmin = async(
-  req:Request,
-  res:Response
-)=>{
-  try{
+export const deleteActivityBySuperAdmin = async (
+  req: Request,
+  res: Response
+) => {
+  try {
     const activity =
       await ActivityService.deleteActivityBySuperAdmin(
         Number(req.params.id)
@@ -186,7 +186,7 @@ export const deleteActivityBySuperAdmin = async(
       "Delete activity successfully",
       activity
     );
-  }catch(error){
+  } catch (error) {
     return createErrorResponse(
       res,
       400,
@@ -200,11 +200,11 @@ export const deleteActivityBySuperAdmin = async(
  * Input : params.id - รหัสกิจกรรม
  * Output : กิจกรรมถูกลบสำเร็จ
  */
-export const deleteActivityByAdmin = async(
-  req:Request,
-  res:Response
-)=>{
-  try{
+export const deleteActivityByAdmin = async (
+  req: Request,
+  res: Response
+) => {
+  try {
     const activity =
       await ActivityService.deleteActivityByAdmin(
         Number(req.params.id),
@@ -216,7 +216,7 @@ export const deleteActivityByAdmin = async(
       "Delete activity successfully",
       activity
     );
-  }catch(error){
+  } catch (error) {
     return createErrorResponse(
       res,
       400,
@@ -295,57 +295,111 @@ export const updateActivityByAdmin = async (
  * คำอธิบาย : SuperAdmin อนุมัติกิจกรรม
  */
 export const approveActivityBySuperAdmin =
-async(
-  req:Request,
-  res:Response
-)=>{
-  try{
-    const activity =
-      await ActivityService.approveActivityBySuperAdmin(
-        Number(req.params.id),
-        req.user.id
+  async (
+    req: Request,
+    res: Response
+  ) => {
+    try {
+      const activity =
+        await ActivityService.approveActivityBySuperAdmin(
+          Number(req.params.id),
+          req.user.id
+        );
+      return createResponse(
+        res,
+        200,
+        "Approve activity successfully",
+        activity
       );
-    return createResponse(
-      res,
-      200,
-      "Approve activity successfully",
-      activity
-    );
-  }catch(error){
-    return createErrorResponse(
-      res,
-      400,
-      (error as Error).message
-    );
-  }
-};
+    } catch (error) {
+      return createErrorResponse(
+        res,
+        400,
+        (error as Error).message
+      );
+    }
+  };
 
 /*
  * คำอธิบาย : SuperAdmin Reject กิจกรรม
  */
 export const rejectActivityBySuperAdmin =
-async(
-  req:Request,
-  res:Response
-)=>{
-  try{
-    const activity =
-      await ActivityService.rejectActivityBySuperAdmin(
-        Number(req.params.id),
-        req.user.id,
-        req.body.reason
+  async (
+    req: Request,
+    res: Response
+  ) => {
+    try {
+      const activity =
+        await ActivityService.rejectActivityBySuperAdmin(
+          Number(req.params.id),
+          req.user.id,
+          req.body.reason
+        );
+      return createResponse(
+        res,
+        200,
+        "Reject activity successfully",
+        activity
       );
-    return createResponse(
-      res,
-      200,
-      "Reject activity successfully",
-      activity
-    );
-  }catch(error){
-    return createErrorResponse(
-      res,
-      400,
-      (error as Error).message
-    );
-  }
-};
+    } catch (error) {
+      return createErrorResponse(
+        res,
+        400,
+        (error as Error).message
+      );
+    }
+  };
+
+/*
+ * คำอธิบาย : SuperAdmin ดึงรายการกิจกรรมที่รออนุมัติ
+ */
+export const getRequestActivitiesForSuperAdmin =
+  async (
+    req: Request,
+    res: Response
+  ) => {
+    try {
+      const activities =
+        await ActivityService.getRequestsActivitiesForSuperAdmin();
+      return createResponse(
+        res,
+        200,
+        "Get pending activities successfully",
+        activities
+      );
+    } catch (error) {
+      return createErrorResponse(
+        res,
+        400,
+        (error as Error).message
+      );
+    }
+  };
+
+/*
+ * คำอธิบาย : SuperAdmin ดูรายละเอียดกิจกรรมที่รออนุมัติ
+ */
+export const getRequestActivityDetailForSuperAdmin =
+  async (
+    req: Request,
+    res: Response
+  ) => {
+    try {
+      const activity =
+        await ActivityService.getRequestsActivityDetailForSuperAdmin(
+          Number(req.params.id)
+        );
+      return createResponse(
+        res,
+        200,
+        "Get pending activity detail successfully",
+        activity
+      );
+    } catch (error) {
+      return createErrorResponse(
+        res,
+        400,
+        (error as Error).message
+      );
+    }
+  };
