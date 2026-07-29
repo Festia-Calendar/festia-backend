@@ -224,3 +224,69 @@ export const deleteActivityByAdmin = async(
     );
   }
 };
+
+/*
+ * คำอธิบาย : แก้ไขกิจกรรมโดย SuperAdmin
+ * Input : params.id - รหัสกิจกรรม, req.body - ข้อมูลกิจกรรมใหม่
+ * Output:
+ * 200 - แก้ไขกิจกรรมสำเร็จ
+ * 400 - Error message
+ */
+export const updateActivityBySuperAdmin = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const activity =
+      await ActivityService.updateActivityBySuperAdmin(
+        Number(req.params.id),
+        req.user.id,
+        req.body
+      );
+    return createResponse(
+      res,
+      200,
+      "Update activity successfully",
+      activity
+    );
+  } catch (error) {
+    return createErrorResponse(
+      res,
+      400,
+      (error as Error).message
+    );
+  }
+};
+
+/*
+ * คำอธิบาย : แก้ไขกิจกรรมโดย Admin
+ * Input : params.id - รหัสกิจกรรม, req.body - ข้อมูลกิจกรรมใหม่
+ * Output:
+ * 200 - แก้ไขกิจกรรมสำเร็จ
+ * 400 - Error message
+ */
+export const updateActivityByAdmin = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const activity =
+      await ActivityService.updateActivityByAdmin(
+        Number(req.params.id),
+        req.user.id,
+        req.body
+      );
+    return createResponse(
+      res,
+      200,
+      "Update activity successfully",
+      activity
+    );
+  } catch (error) {
+    return createErrorResponse(
+      res,
+      400,
+      (error as Error).message
+    );
+  }
+};

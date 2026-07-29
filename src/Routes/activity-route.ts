@@ -82,4 +82,25 @@ activityRoutes.delete(
   ActivityController.deleteActivityByAdmin
 );
 
+
+/*
+ * คำอธิบาย : Route สำหรับ Admin แก้กิจกรรมตัวเอง
+*/
+activityRoutes.put(
+  "/admin/activity/:id",
+  authMiddleware,
+  allowRoles("ADMIN"),
+  ActivityController.updateActivityByAdmin
+);
+
+/*
+ * คำอธิบาย : Route สำหรับ SuperAdmin แก้กิจกรรมทั้งหมด
+*/
+activityRoutes.put(
+  "/superadmin/activity/:id",
+  authMiddleware,
+  allowRoles("SUPERADMIN"),
+  ActivityController.updateActivityBySuperAdmin
+);
+
 export { activityRoutes };

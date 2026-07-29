@@ -48,6 +48,11 @@ export const getActivityByAdmin = async (userId: number) => {
   });
 };
 
+/*
+ * คำอธิบาย : Admin ดูรายละเอียดกิจกรรมของตัวเอง
+ * Input : id - รหัสกิจกรรม, userId - ผู้สร้างกิจกรรม
+ * Output : ข้อมูลกิจกรรม พร้อม location, files, schedules และผู้สร้าง/แก้ไข
+ */
 export const getActivityDetailByAdmin = async (
   id: number,
   userId: number
@@ -60,10 +65,14 @@ export const getActivityDetailByAdmin = async (
     },
     include: {
       location: true,
+      activityFile: true,
       schedules: {
         orderBy: {
           startDateTime: "asc",
         },
+        include: {
+          files: true
+        }
       },
       createdBy: {
         select: {
@@ -87,6 +96,11 @@ export const getActivityDetailByAdmin = async (
   });
 };
 
+/*
+ * คำอธิบาย : SuperAdmin ดูรายละเอียดกิจกรรม
+ * Input : id - รหัสกิจกรรม
+ * Output : ข้อมูลกิจกรรม พร้อม location, files, schedules และผู้สร้าง/แก้ไข
+ */
 export const getActivityDetailBySuperadmin = async (
   id: number
 ) => {
@@ -97,10 +111,14 @@ export const getActivityDetailBySuperadmin = async (
     },
     include: {
       location: true,
+      activityFile: true,
       schedules: {
         orderBy: {
           startDateTime: "asc",
         },
+        include: {
+          files: true
+        }
       },
       createdBy: {
         select: {
@@ -127,15 +145,13 @@ export const getActivityDetailBySuperadmin = async (
 /*
  * คำอธิบาย : สร้างกิจกรรมโดย SuperAdmin
  * Input : userId - ผู้สร้าง, data - ข้อมูลกิจกรรม
- * Output : ข้อมูลกิจกรรม พร้อม location และ schedules
+ * Output : ข้อมูลกิจกรรม พร้อม location, files และ schedules
  */
 export const createActivityBySuperAdmin = async (
   userId: number,
   data: any
 ) => {
   let locationId: number | null = null;
-
-  // สร้าง Location
   if (data.location) {
     const location = await prisma.location.create({
       data: {
@@ -151,32 +167,36 @@ export const createActivityBySuperAdmin = async (
     });
     locationId = location.id;
   }
-
-  // สร้าง Activity
   return prisma.activity.create({
-
     data: {
-
       createById: userId,
+      updatedById: userId,
       locationId,
       name: data.name,
       tagline: data.tagline ?? null,
       description: data.description ?? null,
-
       activityType: data.activityType,
-
       phone: data.phone ?? null,
       lineUrl: data.lineUrl ?? null,
       facebookUrl: data.facebookUrl ?? null,
-
       price: data.price ?? null,
-
-      startDate: data.startDate ?? null,
-      dueDate: data.dueDate ?? null,
-
-      statusActivity: "PUBLISH",
-      statusApprove: "APPROVE",
-
+      startDate: data.startDate
+        ? new Date(data.startDate)
+        : null,
+      dueDate: data.dueDate
+        ? new Date(data.dueDate)
+        : null,
+      statusActivity:
+        data.statusActivity ?? "PUBLISH",
+      statusApprove:
+        data.statusApprove ?? "PENDING",
+      activityFile: {
+        create:
+          data.activityFiles?.map((file: any) => ({
+            filePath: file.filePath,
+            type: file.type,
+          })) ?? []
+      },
       schedules: {
         create:
           data.schedules?.map((item: any) => ({
@@ -184,15 +204,27 @@ export const createActivityBySuperAdmin = async (
             description:
               item.description ?? null,
             startDateTime:
-              item.startDateTime,
+              new Date(item.startDateTime),
             endDateTime:
-              item.endDateTime,
+              new Date(item.endDateTime),
+            files: {
+              create:
+                item.files?.map((file: any) => ({
+                  filePath: file.filePath,
+                  type: file.type,
+                })) ?? []
+            }
           })) ?? []
       }
     },
     include: {
       location: true,
-      schedules: true
+      activityFile: true,
+      schedules: {
+        include: {
+          files: true
+        }
+      }
     }
   });
 };
@@ -200,15 +232,13 @@ export const createActivityBySuperAdmin = async (
 /*
  * คำอธิบาย : สร้างกิจกรรมโดย Admin
  * Input : userId - ผู้สร้าง, data - ข้อมูลกิจกรรม
- * Output : ข้อมูลกิจกรรม พร้อม location และ schedules
+ * Output : ข้อมูลกิจกรรม พร้อม location, files และ schedules
  */
 export const createActivityByAdmin = async (
   userId: number,
   data: any
 ) => {
-
   let locationId: number | null = null;
-
   if (data.location) {
     const location = await prisma.location.create({
       data: {
@@ -224,10 +254,10 @@ export const createActivityByAdmin = async (
     });
     locationId = location.id;
   }
-
   return prisma.activity.create({
     data: {
       createById: userId,
+      updatedById: userId,
       locationId,
       name: data.name,
       tagline: data.tagline ?? null,
@@ -237,10 +267,21 @@ export const createActivityByAdmin = async (
       lineUrl: data.lineUrl ?? null,
       facebookUrl: data.facebookUrl ?? null,
       price: data.price ?? null,
-      startDate: data.startDate ?? null,
-      dueDate: data.dueDate ?? null,
+      startDate: data.startDate
+        ? new Date(data.startDate)
+        : null,
+      dueDate: data.dueDate
+        ? new Date(data.dueDate)
+        : null,
       statusActivity: "UNPUBLISH",
       statusApprove: "PENDING",
+      activityFile: {
+        create:
+          data.activityFiles?.map((file: any) => ({
+            filePath: file.filePath,
+            type: file.type,
+          })) ?? []
+      },
       schedules: {
         create:
           data.schedules?.map((item: any) => ({
@@ -248,15 +289,27 @@ export const createActivityByAdmin = async (
             description:
               item.description ?? null,
             startDateTime:
-              item.startDateTime,
+              new Date(item.startDateTime),
             endDateTime:
-              item.endDateTime,
+              new Date(item.endDateTime),
+            files: {
+              create:
+                item.files?.map((file: any) => ({
+                  filePath: file.filePath,
+                  type: file.type,
+                })) ?? []
+            }
           })) ?? []
       }
     },
     include: {
       location: true,
-      schedules: true
+      activityFile: true,
+      schedules: {
+        include: {
+          files: true
+        }
+      }
     }
   });
 };
@@ -298,7 +351,6 @@ export const deleteActivityByAdmin = async (
   activityId:number,
   userId:number
 )=>{
-  
   const activity =
     await prisma.activity.findFirst({
       where:{
@@ -307,13 +359,11 @@ export const deleteActivityByAdmin = async (
         isDeleted:false
       }
     });
-
   if(!activity){
     throw new Error(
       "ไม่พบกิจกรรม หรือไม่มีสิทธิ์ลบ"
     );
   }
-
   return prisma.activity.update({
     where:{
       id:activityId
@@ -321,6 +371,247 @@ export const deleteActivityByAdmin = async (
     data:{
       isDeleted:true,
       deleteAt:new Date()
+    }
+  });
+};
+
+/*
+ * คำอธิบาย : แก้ไขกิจกรรมโดย Admin
+ * Input : id - รหัสกิจกรรม, userId - เจ้าของกิจกรรม, data - ข้อมูลใหม่
+ * Output : ข้อมูลกิจกรรมที่แก้ไขแล้ว
+ */
+export const updateActivityByAdmin = async (
+  id: number,
+  userId: number,
+  data: any
+) => {
+  const activity = await prisma.activity.findFirst({
+    where: {
+      id,
+      createById: userId,
+      isDeleted: false,
+    }
+  });
+  if (!activity) {
+    throw new Error("Activity not found");
+  }
+  let locationId = activity.locationId;
+  if (data.location) {
+
+    if (locationId) {
+
+      await prisma.location.update({
+        where:{
+          id: locationId
+        },
+        data:{
+          name: data.location.name,
+          zone: data.location.zone,
+          province: data.location.province,
+          district: data.location.district,
+          subDistrict: data.location.subDistrict,
+          detail:data.location.detail ?? null,
+          latitude:Number(data.location.latitude),
+          longitude:Number(data.location.longitude)
+        }
+      });
+    } else {
+      const location =
+        await prisma.location.create({
+          data:{
+            ...data.location,
+            latitude:Number(data.location.latitude),
+            longitude:Number(data.location.longitude)
+          }
+        });
+      locationId = location.id;
+    }
+  }
+  await prisma.activityFile.deleteMany({
+    where:{
+      activityId:id
+    }
+  });
+  await prisma.activitySchedule.deleteMany({
+    where:{
+      activityId:id
+    }
+  });
+  return prisma.activity.update({
+    where:{
+      id
+    },
+    data:{
+      locationId,
+      updatedById:userId,
+      name:data.name,
+      tagline:data.tagline ?? null,
+      description:data.description ?? null,
+      activityType:data.activityType,
+      phone:data.phone ?? null,
+      lineUrl:data.lineUrl ?? null,
+      facebookUrl:data.facebookUrl ?? null,
+      price:data.price ?? null,
+      startDate:data.startDate
+        ? new Date(data.startDate)
+        : null,
+      dueDate:data.dueDate
+        ? new Date(data.dueDate)
+        : null,
+      activityFile:{
+        create:
+          data.activityFiles?.map((file:any)=>({
+            filePath:file.filePath,
+            type:file.type
+          })) ?? []
+      },
+      schedules:{
+        create:
+          data.schedules?.map((item:any)=>({
+            title:item.title ?? null,
+            description:item.description ?? null,
+            startDateTime:
+              new Date(item.startDateTime),
+            endDateTime:
+              new Date(item.endDateTime),
+            files:{
+              create:
+                item.files?.map((file:any)=>({
+                  filePath:file.filePath,
+                  type:file.type
+                })) ?? []
+            }
+          })) ?? []
+      },
+      statusActivity:"UNPUBLISH",
+      statusApprove:"PENDING"
+    },
+    include:{
+      location:true,
+      activityFile:true,
+      schedules:{
+        include:{
+          files:true
+        }
+      }
+    }
+  });
+};
+
+/*
+ * คำอธิบาย : แก้ไขกิจกรรมโดย SuperAdmin
+ * Input : id - รหัสกิจกรรม, userId - ผู้แก้ไข, data - ข้อมูลใหม่
+ * Output : ข้อมูลกิจกรรมที่แก้ไขแล้ว
+ */
+export const updateActivityBySuperAdmin = async (
+  id:number,
+  userId:number,
+  data:any
+)=>{
+  const activity = await prisma.activity.findFirst({
+    where:{
+      id,
+      isDeleted:false
+    }
+  });
+  if(!activity){
+    throw new Error("Activity not found");
+  }
+  let locationId = activity.locationId;
+  if(data.location){
+    if(locationId){
+      await prisma.location.update({
+        where:{
+          id:locationId
+        },
+        data:{
+          name:data.location.name,
+          zone:data.location.zone,
+          province:data.location.province,
+          district:data.location.district,
+          subDistrict:data.location.subDistrict,
+          detail:data.location.detail ?? null,
+          latitude:Number(data.location.latitude),
+          longitude:Number(data.location.longitude)
+        }
+      });
+    }else{
+      const location =
+        await prisma.location.create({
+          data:{
+            ...data.location,
+            latitude:Number(data.location.latitude),
+            longitude:Number(data.location.longitude)
+          }
+        });
+      locationId = location.id;
+    }
+  }
+  await prisma.activityFile.deleteMany({
+    where:{
+      activityId:id
+    }
+  });
+  await prisma.activitySchedule.deleteMany({
+    where:{
+      activityId:id
+    }
+  });
+  return prisma.activity.update({
+    where:{
+      id
+    },
+    data:{
+      locationId,
+      updatedById:userId,
+      name:data.name,
+      tagline:data.tagline ?? null,
+      description:data.description ?? null,
+      activityType:data.activityType,
+      phone:data.phone ?? null,
+      lineUrl:data.lineUrl ?? null,
+      facebookUrl:data.facebookUrl ?? null,
+      price:data.price ?? null,
+      startDate:data.startDate
+        ? new Date(data.startDate)
+        : null,
+      dueDate:data.dueDate
+        ? new Date(data.dueDate)
+        : null,
+      activityFile:{
+        create:
+        data.activityFiles?.map((file:any)=>({
+          filePath:file.filePath,
+          type:file.type
+        })) ?? []
+      },
+      schedules:{
+        create:
+        data.schedules?.map((item:any)=>({
+          title:item.title ?? null,
+          description:item.description ?? null,
+          startDateTime:
+            new Date(item.startDateTime),
+          endDateTime:
+            new Date(item.endDateTime),
+          files:{
+            create:
+            item.files?.map((file:any)=>({
+              filePath:file.filePath,
+              type:file.type
+            })) ?? []
+          }
+        })) ?? []
+      }
+    },
+    include:{
+      location:true,
+      activityFile:true,
+      schedules:{
+        include:{
+          files:true
+        }
+      }
     }
   });
 };
