@@ -143,4 +143,12 @@ activityRoutes.patch(
   ActivityController.rejectActivityBySuperAdmin
 );
 
+/*
+ * คำอธิบาย : หน้า Home ดูรายละเอียดกิจกรรม
+ */
+activityRoutes.get(
+  "/home/activity/:id",
+  ActivityController.getActivityDetailForHome
+);
+
 export { activityRoutes };

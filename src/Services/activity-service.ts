@@ -320,24 +320,24 @@ export const deleteActivityBySuperAdmin = async (
 ) => {
   const activity =
     await prisma.activity.findUnique({
-      where:{
+      where: {
         id: activityId
       }
     });
 
-  if(!activity){
+  if (!activity) {
     throw new Error(
       "ไม่พบกิจกรรมในระบบ"
     );
   }
 
   return prisma.activity.update({
-    where:{
+    where: {
       id: activityId
     },
-    data:{
-      isDeleted:true,
-      deleteAt:new Date()
+    data: {
+      isDeleted: true,
+      deleteAt: new Date()
     }
   });
 };
@@ -348,29 +348,29 @@ export const deleteActivityBySuperAdmin = async (
  * Output : ข้อมูลกิจกรรมที่ถูกลบ
  */
 export const deleteActivityByAdmin = async (
-  activityId:number,
-  userId:number
-)=>{
+  activityId: number,
+  userId: number
+) => {
   const activity =
     await prisma.activity.findFirst({
-      where:{
-        id:activityId,
-        createById:userId,
-        isDeleted:false
+      where: {
+        id: activityId,
+        createById: userId,
+        isDeleted: false
       }
     });
-  if(!activity){
+  if (!activity) {
     throw new Error(
       "ไม่พบกิจกรรม หรือไม่มีสิทธิ์ลบ"
     );
   }
   return prisma.activity.update({
-    where:{
-      id:activityId
+    where: {
+      id: activityId
     },
-    data:{
-      isDeleted:true,
-      deleteAt:new Date()
+    data: {
+      isDeleted: true,
+      deleteAt: new Date()
     }
   });
 };
@@ -401,97 +401,97 @@ export const updateActivityByAdmin = async (
     if (locationId) {
 
       await prisma.location.update({
-        where:{
+        where: {
           id: locationId
         },
-        data:{
+        data: {
           name: data.location.name,
           zone: data.location.zone,
           province: data.location.province,
           district: data.location.district,
           subDistrict: data.location.subDistrict,
-          detail:data.location.detail ?? null,
-          latitude:Number(data.location.latitude),
-          longitude:Number(data.location.longitude)
+          detail: data.location.detail ?? null,
+          latitude: Number(data.location.latitude),
+          longitude: Number(data.location.longitude)
         }
       });
     } else {
       const location =
         await prisma.location.create({
-          data:{
+          data: {
             ...data.location,
-            latitude:Number(data.location.latitude),
-            longitude:Number(data.location.longitude)
+            latitude: Number(data.location.latitude),
+            longitude: Number(data.location.longitude)
           }
         });
       locationId = location.id;
     }
   }
   await prisma.activityFile.deleteMany({
-    where:{
-      activityId:id
+    where: {
+      activityId: id
     }
   });
   await prisma.activitySchedule.deleteMany({
-    where:{
-      activityId:id
+    where: {
+      activityId: id
     }
   });
   return prisma.activity.update({
-    where:{
+    where: {
       id
     },
-    data:{
+    data: {
       locationId,
-      updatedById:userId,
-      name:data.name,
-      tagline:data.tagline ?? null,
-      description:data.description ?? null,
-      activityType:data.activityType,
-      phone:data.phone ?? null,
-      lineUrl:data.lineUrl ?? null,
-      facebookUrl:data.facebookUrl ?? null,
-      price:data.price ?? null,
-      startDate:data.startDate
+      updatedById: userId,
+      name: data.name,
+      tagline: data.tagline ?? null,
+      description: data.description ?? null,
+      activityType: data.activityType,
+      phone: data.phone ?? null,
+      lineUrl: data.lineUrl ?? null,
+      facebookUrl: data.facebookUrl ?? null,
+      price: data.price ?? null,
+      startDate: data.startDate
         ? new Date(data.startDate)
         : null,
-      dueDate:data.dueDate
+      dueDate: data.dueDate
         ? new Date(data.dueDate)
         : null,
-      activityFile:{
+      activityFile: {
         create:
-          data.activityFiles?.map((file:any)=>({
-            filePath:file.filePath,
-            type:file.type
+          data.activityFiles?.map((file: any) => ({
+            filePath: file.filePath,
+            type: file.type
           })) ?? []
       },
-      schedules:{
+      schedules: {
         create:
-          data.schedules?.map((item:any)=>({
-            title:item.title ?? null,
-            description:item.description ?? null,
+          data.schedules?.map((item: any) => ({
+            title: item.title ?? null,
+            description: item.description ?? null,
             startDateTime:
               new Date(item.startDateTime),
             endDateTime:
               new Date(item.endDateTime),
-            files:{
+            files: {
               create:
-                item.files?.map((file:any)=>({
-                  filePath:file.filePath,
-                  type:file.type
+                item.files?.map((file: any) => ({
+                  filePath: file.filePath,
+                  type: file.type
                 })) ?? []
             }
           })) ?? []
       },
-      statusActivity:"UNPUBLISH",
-      statusApprove:"PENDING"
+      statusActivity: "UNPUBLISH",
+      statusApprove: "PENDING"
     },
-    include:{
-      location:true,
-      activityFile:true,
-      schedules:{
-        include:{
-          files:true
+    include: {
+      location: true,
+      activityFile: true,
+      schedules: {
+        include: {
+          files: true
         }
       }
     }
@@ -504,112 +504,112 @@ export const updateActivityByAdmin = async (
  * Output : ข้อมูลกิจกรรมที่แก้ไขแล้ว
  */
 export const updateActivityBySuperAdmin = async (
-  id:number,
-  userId:number,
-  data:any
-)=>{
+  id: number,
+  userId: number,
+  data: any
+) => {
   const activity = await prisma.activity.findFirst({
-    where:{
+    where: {
       id,
-      isDeleted:false
+      isDeleted: false
     }
   });
-  if(!activity){
+  if (!activity) {
     throw new Error("Activity not found");
   }
   let locationId = activity.locationId;
-  if(data.location){
-    if(locationId){
+  if (data.location) {
+    if (locationId) {
       await prisma.location.update({
-        where:{
-          id:locationId
+        where: {
+          id: locationId
         },
-        data:{
-          name:data.location.name,
-          zone:data.location.zone,
-          province:data.location.province,
-          district:data.location.district,
-          subDistrict:data.location.subDistrict,
-          detail:data.location.detail ?? null,
-          latitude:Number(data.location.latitude),
-          longitude:Number(data.location.longitude)
+        data: {
+          name: data.location.name,
+          zone: data.location.zone,
+          province: data.location.province,
+          district: data.location.district,
+          subDistrict: data.location.subDistrict,
+          detail: data.location.detail ?? null,
+          latitude: Number(data.location.latitude),
+          longitude: Number(data.location.longitude)
         }
       });
-    }else{
+    } else {
       const location =
         await prisma.location.create({
-          data:{
+          data: {
             ...data.location,
-            latitude:Number(data.location.latitude),
-            longitude:Number(data.location.longitude)
+            latitude: Number(data.location.latitude),
+            longitude: Number(data.location.longitude)
           }
         });
       locationId = location.id;
     }
   }
   await prisma.activityFile.deleteMany({
-    where:{
-      activityId:id
+    where: {
+      activityId: id
     }
   });
   await prisma.activitySchedule.deleteMany({
-    where:{
-      activityId:id
+    where: {
+      activityId: id
     }
   });
   return prisma.activity.update({
-    where:{
+    where: {
       id
     },
-    data:{
+    data: {
       locationId,
-      updatedById:userId,
-      name:data.name,
-      tagline:data.tagline ?? null,
-      description:data.description ?? null,
-      activityType:data.activityType,
-      phone:data.phone ?? null,
-      lineUrl:data.lineUrl ?? null,
-      facebookUrl:data.facebookUrl ?? null,
-      price:data.price ?? null,
-      startDate:data.startDate
+      updatedById: userId,
+      name: data.name,
+      tagline: data.tagline ?? null,
+      description: data.description ?? null,
+      activityType: data.activityType,
+      phone: data.phone ?? null,
+      lineUrl: data.lineUrl ?? null,
+      facebookUrl: data.facebookUrl ?? null,
+      price: data.price ?? null,
+      startDate: data.startDate
         ? new Date(data.startDate)
         : null,
-      dueDate:data.dueDate
+      dueDate: data.dueDate
         ? new Date(data.dueDate)
         : null,
-      activityFile:{
+      activityFile: {
         create:
-        data.activityFiles?.map((file:any)=>({
-          filePath:file.filePath,
-          type:file.type
-        })) ?? []
+          data.activityFiles?.map((file: any) => ({
+            filePath: file.filePath,
+            type: file.type
+          })) ?? []
       },
-      schedules:{
+      schedules: {
         create:
-        data.schedules?.map((item:any)=>({
-          title:item.title ?? null,
-          description:item.description ?? null,
-          startDateTime:
-            new Date(item.startDateTime),
-          endDateTime:
-            new Date(item.endDateTime),
-          files:{
-            create:
-            item.files?.map((file:any)=>({
-              filePath:file.filePath,
-              type:file.type
-            })) ?? []
-          }
-        })) ?? []
+          data.schedules?.map((item: any) => ({
+            title: item.title ?? null,
+            description: item.description ?? null,
+            startDateTime:
+              new Date(item.startDateTime),
+            endDateTime:
+              new Date(item.endDateTime),
+            files: {
+              create:
+                item.files?.map((file: any) => ({
+                  filePath: file.filePath,
+                  type: file.type
+                })) ?? []
+            }
+          })) ?? []
       }
     },
-    include:{
-      location:true,
-      activityFile:true,
-      schedules:{
-        include:{
-          files:true
+    include: {
+      location: true,
+      activityFile: true,
+      schedules: {
+        include: {
+          files: true
         }
       }
     }
@@ -643,10 +643,10 @@ export const approveActivityBySuperAdmin = async (
     );
   }
   return prisma.activity.update({
-    where:{
+    where: {
       id
     },
-    data:{
+    data: {
       statusApprove:
         "APPROVE",
       statusActivity:
@@ -665,34 +665,34 @@ export const approveActivityBySuperAdmin = async (
  * Output : กิจกรรมที่ถูก Reject
  */
 export const rejectActivityBySuperAdmin = async (
-  id:number,
-  userId:number,
-  reason:string
-)=>{
+  id: number,
+  userId: number,
+  reason: string
+) => {
   const activity =
     await prisma.activity.findFirst({
-      where:{
+      where: {
         id,
-        isDeleted:false
+        isDeleted: false
       }
     });
-  if(!activity){
+  if (!activity) {
     throw new Error(
       "Activity not found"
     );
   }
-  if(
+  if (
     activity.statusApprove !== "PENDING"
-  ){
+  ) {
     throw new Error(
       "Activity already processed"
     );
   }
   return prisma.activity.update({
-    where:{
+    where: {
       id
     },
-    data:{
+    data: {
       statusApprove:
         "REJECTED",
       statusActivity:
@@ -784,10 +784,145 @@ export const getRequestsActivityDetailForSuperAdmin = async (
         },
       },
     });
-  if(!activity){
+  if (!activity) {
     throw new Error(
       "ไม่พบกิจกรรมที่รออนุมัติ"
     );
   }
   return activity;
+};
+
+/*
+ * คำอธิบาย : ดึงรายละเอียดกิจกรรมสำหรับหน้า Home
+ * Input : id - รหัส Activity
+ * Output :
+ * ชื่อ
+ * คำโปรย
+ * รูปทั้งหมด
+ * วันที่
+ * สถานที่
+ * พิกัด
+ * ช่องทางติดต่อ
+ * ค่าเข้าชม
+ * รายละเอียด
+ * กำหนดการทั้งหมด
+ */
+export const getActivityDetailForHome = async (
+  id: number
+) => {
+  const activity =
+    await prisma.activity.findFirst({
+      where: {
+        id,
+        isDeleted: false,
+        statusApprove: "APPROVE",
+        statusActivity: "PUBLISH",
+      },
+      select: {
+        id: true,
+        name: true,
+        tagline: true,
+        description: true,
+        activityType: true,
+        startDate: true,
+        dueDate: true,
+        price: true,
+        phone: true,
+        lineUrl: true,
+        facebookUrl: true,
+        activityFile: {
+          select: {
+            id: true,
+            filePath: true,
+            type: true,
+          }
+        },
+        location: {
+          select: {
+            id: true,
+            name: true,
+            zone: true,
+            province: true,
+            district: true,
+            subDistrict: true,
+            detail: true,
+            latitude: true,
+            longitude: true,
+          }
+        },
+        schedules: {
+          orderBy: {
+            startDateTime: "asc"
+          },
+          select: {
+            id: true,
+            title: true,
+            description: true,
+            startDateTime: true,
+            endDateTime: true,
+
+            files: {
+              select: {
+                id: true,
+                filePath: true,
+                type: true,
+              }
+            }
+          }
+        }
+      }
+    });
+  if (!activity) {
+    throw new Error(
+      "ไม่พบกิจกรรม"
+    );
+  }
+  const relatedActivities =
+    await prisma.activity.findMany({
+      where: {
+        isDeleted: false,
+        statusApprove: "APPROVE",
+        statusActivity: "PUBLISH",
+        activityType: activity.activityType,
+        id: {
+          not: id
+        }
+      },
+      take: 4,
+      orderBy: {
+        createdAt: "desc"
+      },
+      select: {
+        id: true,
+        name: true,
+        tagline: true,
+        startDate: true,
+        dueDate: true,
+        price: true,
+        phone: true,
+        lineUrl: true,
+        facebookUrl: true,
+        activityFile: {
+          where: {
+            type: "COVER"
+          },
+          select: {
+            filePath: true
+          },
+          take: 1
+        },
+        location: {
+          select: {
+            name: true,
+            province: true,
+            district: true,
+            subDistrict: true,
+          }
+        }
+      }
+    });
+  return {
+    activity,
+    relatedActivities
+  };
 };

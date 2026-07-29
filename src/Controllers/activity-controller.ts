@@ -403,3 +403,33 @@ export const getRequestActivityDetailForSuperAdmin =
       );
     }
   };
+
+/*
+ * คำอธิบาย : ดึงรายละเอียดกิจกรรมสำหรับหน้า Home
+ * Input : params.id
+ * Output : รายละเอียดกิจกรรมทั้งหมด
+*/
+export const getActivityDetailForHome =
+async (
+  req: Request,
+  res: Response
+)=>{
+  try {
+    const activity =
+      await ActivityService.getActivityDetailForHome(
+        Number(req.params.id)
+      );
+    return createResponse(
+      res,
+      200,
+      "Get activity detail successfully",
+      activity
+    );
+  } catch(error){
+    return createErrorResponse(
+      res,
+      400,
+      (error as Error).message
+    );
+  }
+};
