@@ -5,611 +5,482 @@ import {
   ActivityPublishStatus,
   ActivityApproveStatus,
   ActivityType,
+  ImageType,
 } from "@prisma/client";
 
 import bcrypt from "bcrypt";
 
-
 const prisma = new PrismaClient();
 
-
-
 async function main() {
-
-
-  console.log("🌱 Start seed...");
-
-
+  console.log("🌱 Start seeding...");
 
   // =========================
   // ROLE
   // =========================
 
-  const superAdminRole =
-    await prisma.role.upsert({
+  const superAdminRole = await prisma.role.upsert({
+    where: { name: "SUPERADMIN" },
+    update: {},
+    create: {
+      name: "SUPERADMIN",
+    },
+  });
 
-      where:{
-        name:"SUPERADMIN"
-      },
+  const adminRole = await prisma.role.upsert({
+    where: { name: "ADMIN" },
+    update: {},
+    create: {
+      name: "ADMIN",
+    },
+  });
 
-      update:{},
-
-      create:{
-        name:"SUPERADMIN"
-      }
-
-    });
-
-
-
-  const adminRole =
-    await prisma.role.upsert({
-
-      where:{
-        name:"ADMIN"
-      },
-
-      update:{},
-
-      create:{
-        name:"ADMIN"
-      }
-
-    });
-
-
-
+  console.log("✅ Roles seeded");
 
   // =========================
-  // USER
+  // BANNER
   // =========================
 
-  const password =
-    await bcrypt.hash(
-      "123456",
-      10
-    );
+  await prisma.banner.deleteMany();
 
+  await prisma.banner.createMany({
+    data: [
+      {
+        image: "/uploads/banner/banner-1.jpg",
+      },
+      {
+        image: "/uploads/banner/banner-2.jpg",
+      },
+      {
+        image: "/uploads/banner/banner-3.jpg",
+      },
+    ],
+  });
 
-  const superAdmin =
-    await prisma.user.create({
+  console.log("✅ Banners seeded");
 
-      data:{
+  // =========================
+  // USERS
+  // =========================
 
-        roleId:
-          superAdminRole.id,
+  const password = await bcrypt.hash("123456", 10);
 
-        username:
-          "superadmin",
+  const superAdmin = await prisma.user.upsert({
+    where: {
+      username: "superadmin",
+    },
+    update: {},
+    create: {
+      roleId: superAdminRole.id,
+      username: "superadmin",
+      email: "superadmin@example.com",
+      password,
+      fname: "Super",
+      lname: "Admin",
+      phone: "0800000001",
+      gender: Gender.MALE,
+      status: UserStatus.ACTIVE,
+    },
+  });
 
-        email:
-          "superadmin@festia.com",
+  const admin = await prisma.user.upsert({
+    where: {
+      username: "admin",
+    },
+    update: {},
+    create: {
+      roleId: adminRole.id,
+      username: "admin",
+      email: "admin@example.com",
+      password,
+      fname: "System",
+      lname: "Admin",
+      phone: "0800000002",
+      gender: Gender.FEMALE,
+      status: UserStatus.ACTIVE,
+    },
+  });
 
-        password,
+  const admin2 = await prisma.user.upsert({
+    where: {
+      username: "admin2",
+    },
+    update: {},
+    create: {
+      roleId: adminRole.id,
+      username: "admin2",
+      email: "admin2@example.com",
+      password,
+      fname: "Somchai",
+      lname: "Jaidee",
+      phone: "0800000003",
+      gender: Gender.MALE,
+      status: UserStatus.ACTIVE,
+    },
+  });
 
-        fname:
-          "สมชาย",
+  const blockedUser = await prisma.user.upsert({
+    where: {
+      username: "blocked",
+    },
+    update: {},
+    create: {
+      roleId: adminRole.id,
+      username: "blocked",
+      email: "blocked@example.com",
+      password,
+      fname: "Blocked",
+      lname: "User",
+      phone: "0800000004",
+      gender: Gender.NONE,
+      status: UserStatus.BLOCKED,
+    },
+  });
 
-        lname:
-          "ผู้ดูแลระบบ",
-
-        phone:
-          "0800000001",
-
-        gender:
-          Gender.MALE,
-
-        status:
-          UserStatus.ACTIVE
-
-      }
-
-    });
-
-
-
-
-  const admin =
-    await prisma.user.create({
-
-      data:{
-
-        roleId:
-          adminRole.id,
-
-        username:
-          "admin",
-
-        email:
-          "admin@festia.com",
-
-        password,
-
-        fname:
-          "วิภา",
-
-        lname:
-          "ผู้จัดกิจกรรม",
-
-        phone:
-          "0800000002",
-
-        gender:
-          Gender.FEMALE,
-
-        status:
-          UserStatus.ACTIVE
-
-      }
-
-    });
-
-
-
-
-  const guest =
-    await prisma.user.create({
-
-      data:{
-
-        roleId:
-          adminRole.id,
-
-        username:
-          "guest",
-
-        email:
-          "guest@festia.com",
-
-        password,
-
-        fname:
-          "Guest",
-
-        lname:
-          "User",
-
-        phone:
-          "0800000003",
-
-        gender:
-          Gender.NONE,
-
-        status:
-          UserStatus.ACTIVE
-
-      }
-
-    });
-
-
-
+  console.log("✅ Users seeded");
 
   // =========================
   // LOCATION
   // =========================
 
+  await prisma.location.deleteMany();
 
-  const location =
-    await prisma.location.create({
+  await prisma.location.createMany({
+    data: [
+      {
+        name: "หาดพัทยา",
+        zone: "ภาคตะวันออก",
+        province: "ชลบุรี",
+        district: "บางละมุง",
+        subDistrict: "หนองปรือ",
+        detail: "ชายหาดพัทยาเหนือ",
+        latitude: 12.9342,
+        longitude: 100.8830,
+      },
+      {
+        name: "ตลาดน้ำ 4 ภาค",
+        zone: "ภาคตะวันออก",
+        province: "ชลบุรี",
+        district: "บางละมุง",
+        subDistrict: "หนองปรือ",
+        detail: "ตลาดน้ำพัทยา",
+        latitude: 12.8797,
+        longitude: 100.9045,
+      },
+      {
+        name: "เซ็นทรัล พัทยา",
+        zone: "ภาคตะวันออก",
+        province: "ชลบุรี",
+        district: "บางละมุง",
+        subDistrict: "หนองปรือ",
+        detail: "Central Pattaya",
+        latitude: 12.9349,
+        longitude: 100.8838,
+      },
+      {
+        name: "สวนสาธารณะเฉลิมพระเกียรติ",
+        zone: "ภาคตะวันออก",
+        province: "ชลบุรี",
+        district: "บางละมุง",
+        subDistrict: "นาเกลือ",
+        detail: "พื้นที่จัดกิจกรรมกลางแจ้ง",
+        latitude: 12.9501,
+        longitude: 100.8899,
+      },
+      {
+        name: "ศาลาว่าการเมืองพัทยา",
+        zone: "ภาคตะวันออก",
+        province: "ชลบุรี",
+        district: "บางละมุง",
+        subDistrict: "นาเกลือ",
+        detail: "อาคารประชุม",
+        latitude: 12.9616,
+        longitude: 100.8894,
+      },
+    ],
+  });
 
-      data:{
+  const locations = await prisma.location.findMany();
 
-        name:
-          "ศูนย์ประชุมแห่งชาติสิริกิติ์",
-
-        zone:
-          "กรุงเทพมหานคร",
-
-        province:
-          "กรุงเทพมหานคร",
-
-        district:
-          "คลองเตย",
-
-        subDistrict:
-          "คลองเตย",
-
-        detail:
-          "สถานที่จัดกิจกรรมและนิทรรศการขนาดใหญ่",
-
-        latitude:
-          13.7245,
-
-        longitude:
-          100.5595
-
-      }
-
-    });
-
-
-
-
+  console.log("✅ Locations seeded");
 
   // =========================
-  // ACTIVITY DATA
+  // ACTIVITIES
   // =========================
 
+  await prisma.activityScheduleFile.deleteMany();
+  await prisma.activityFile.deleteMany();
+  await prisma.activitySchedule.deleteMany();
+  await prisma.activity.deleteMany();
 
   const activities = [
-
-
     {
-      name:
-        "ประเพณีสงกรานต์พระประแดง 2569",
-
-      tagline:
-        "สืบสานวัฒนธรรมไทย วิถีชาวมอญ",
-
-      description:
-        "งานประเพณีสงกรานต์พระประแดง พบกับขบวนแห่ การละเล่นพื้นบ้าน และกิจกรรมวัฒนธรรม",
-
-      type:
-        ActivityType.CULTURAL_FESTIVAL,
-
-      publish:
-        ActivityPublishStatus.PUBLISH,
-
-      approve:
-        ActivityApproveStatus.APPROVE,
-
-      price:0
-
+      name: "เทศกาลสงกรานต์พัทยา",
+      tagline: "เล่นน้ำสุดมันส์",
+      description: "ร่วมสนุกเทศกาลสงกรานต์ริมชายหาด",
+      activityType: ActivityType.CULTURAL_FESTIVAL,
+      publish: ActivityPublishStatus.PUBLISH,
+      approve: ActivityApproveStatus.APPROVE,
+      price: 0,
+      locationId: locations[0].id,
+      createById: superAdmin.id,
     },
-
-
-
     {
-      name:
-        "Bangkok Art Biennale 2026",
-
-      tagline:
-        "เทศกาลศิลปะร่วมสมัยนานาชาติ",
-
-      description:
-        "นิทรรศการศิลปะจากศิลปินไทยและต่างประเทศ",
-
-      type:
-        ActivityType.EXHIBITION_ART,
-
-      publish:
-        ActivityPublishStatus.PUBLISH,
-
-      approve:
-        ActivityApproveStatus.APPROVE,
-
-      price:200
-
+      name: "นิทรรศการศิลปะร่วมสมัย",
+      tagline: "Art Exhibition",
+      description: "รวมผลงานศิลปินไทย",
+      activityType: ActivityType.EXHIBITION_ART,
+      publish: ActivityPublishStatus.PUBLISH,
+      approve: ActivityApproveStatus.APPROVE,
+      price: 100,
+      locationId: locations[1].id,
+      createById: admin.id,
     },
-
-
-
     {
-      name:
-        "Thailand Music Festival 2026",
-
-      tagline:
-        "มหกรรมดนตรีกลางแจ้ง",
-
-      description:
-        "เทศกาลดนตรีรวมศิลปินไทยและต่างประเทศ",
-
-      type:
-        ActivityType.PERFORMANCE_MUSIC,
-
-      publish:
-        ActivityPublishStatus.PUBLISH,
-
-      approve:
-        ActivityApproveStatus.APPROVE,
-
-      price:1500
-
+      name: "คอนเสิร์ตริมทะเล",
+      tagline: "Beach Music",
+      description: "ดนตรีสดริมชายหาด",
+      activityType: ActivityType.PERFORMANCE_MUSIC,
+      publish: ActivityPublishStatus.PUBLISH,
+      approve: ActivityApproveStatus.PENDING,
+      price: 299,
+      locationId: locations[2].id,
+      createById: admin.id,
     },
-
-
-
     {
-      name:
-        "เทศกาลอาหารทะเลบางแสน 2569",
-
-      tagline:
-        "รวมอาหารทะเลชื่อดัง",
-
-      description:
-        "เทศกาลอาหารทะเลและกิจกรรมชุมชนริมชายหาด",
-
-      type:
-        ActivityType.FOOD_DRINK_FESTIVAL,
-
-      publish:
-        ActivityPublishStatus.PUBLISH,
-
-      approve:
-        ActivityApproveStatus.APPROVE,
-
-      price:0
-
+      name: "เทศกาลอาหารทะเล",
+      tagline: "Seafood Festival",
+      description: "อาหารทะเลสด",
+      activityType: ActivityType.FOOD_DRINK_FESTIVAL,
+      publish: ActivityPublishStatus.DRAFT,
+      approve: ActivityApproveStatus.PENDING,
+      price: 50,
+      locationId: locations[3].id,
+      createById: admin2.id,
     },
-
-
-
     {
-      name:
-        "Art & Craft Weekend Market",
-
-      tagline:
-        "ตลาดงานสร้างสรรค์",
-
-      description:
-        "ตลาดรวมสินค้า Handmade และสินค้าท้องถิ่น",
-
-      type:
-        ActivityType.MARKET_FAIR,
-
-      publish:
-        ActivityPublishStatus.UNPUBLISH,
-
-      approve:
-        ActivityApproveStatus.PENDING,
-
-      price:0
-
+      name: "ตลาดนัดกลางคืน",
+      tagline: "Night Market",
+      description: "ของกินและของใช้",
+      activityType: ActivityType.MARKET_FAIR,
+      publish: ActivityPublishStatus.UNPUBLISH,
+      approve: ActivityApproveStatus.REJECTED,
+      price: 0,
+      locationId: locations[4].id,
+      createById: admin2.id,
+      rejectReason: "ข้อมูลไม่ครบ",
     },
-
-
-
     {
-      name:
-        "อบรม Digital Marketing สำหรับ SME",
-
-      tagline:
-        "เพิ่มยอดขายด้วยโลกออนไลน์",
-
-      description:
-        "อบรมการสร้างแบรนด์ การตลาดออนไลน์ และ Content Marketing",
-
-      type:
-        ActivityType.TRAINING_SEMINAR,
-
-      publish:
-        ActivityPublishStatus.DRAFT,
-
-      approve:
-        ActivityApproveStatus.PENDING,
-
-      price:500
-
+      name: "อบรม AI",
+      tagline: "AI Training",
+      description: "พื้นฐาน AI",
+      activityType: ActivityType.TRAINING_SEMINAR,
+      publish: ActivityPublishStatus.DRAFT,
+      approve: ActivityApproveStatus.PENDING,
+      price: 1500,
+      locationId: locations[0].id,
+      createById: superAdmin.id,
     },
-
-
-
     {
-      name:
-        "Pattaya Beach Sport Festival",
-
-      tagline:
-        "มหกรรมกีฬาริมชายหาด",
-
-      description:
-        "การแข่งขันกีฬาและกิจกรรมนันทนาการริมทะเล",
-
-      type:
-        ActivityType.SPORT_RECREATION,
-
-      publish:
-        ActivityPublishStatus.UNPUBLISH,
-
-      approve:
-        ActivityApproveStatus.REJECTED,
-
-      price:100
-
+      name: "วิ่งมาราธอน",
+      tagline: "Marathon",
+      description: "กิจกรรมเพื่อสุขภาพ",
+      activityType: ActivityType.SPORT_RECREATION,
+      publish: ActivityPublishStatus.PUBLISH,
+      approve: ActivityApproveStatus.APPROVE,
+      price: 500,
+      locationId: locations[1].id,
+      createById: admin.id,
     },
-
-
-
     {
-      name:
-        "เที่ยวชุมชนบ้านเชียง วิถีอีสาน",
-
-      tagline:
-        "เรียนรู้วัฒนธรรมท้องถิ่น",
-
-      description:
-        "กิจกรรมท่องเที่ยวชุมชน เรียนรู้ภูมิปัญญาและอาหารพื้นบ้าน",
-
-      type:
-        ActivityType.COMMUNITY_TOURISM,
-
-      publish:
-        ActivityPublishStatus.DRAFT,
-
-      approve:
-        ActivityApproveStatus.PENDING,
-
-      price:800
-
-    }
-
+      name: "ท่องเที่ยวชุมชน",
+      tagline: "Community Tour",
+      description: "เยี่ยมชมวิถีชุมชน",
+      activityType: ActivityType.COMMUNITY_TOURISM,
+      publish: ActivityPublishStatus.UNPUBLISH,
+      approve: ActivityApproveStatus.APPROVE,
+      price: 250,
+      locationId: locations[2].id,
+      createById: admin2.id,
+    },
+    {
+      name: "เทศกาลลอยกระทง",
+      tagline: "Loy Krathong",
+      description: "ลอยกระทงริมทะเล",
+      activityType: ActivityType.CULTURAL_FESTIVAL,
+      publish: ActivityPublishStatus.PUBLISH,
+      approve: ActivityApproveStatus.APPROVE,
+      price: 0,
+      locationId: locations[3].id,
+      createById: superAdmin.id,
+    },
+    {
+      name: "มหกรรมอาหาร",
+      tagline: "Food Fair",
+      description: "รวมร้านดังทั่วประเทศ",
+      activityType: ActivityType.FOOD_DRINK_FESTIVAL,
+      publish: ActivityPublishStatus.DRAFT,
+      approve: ActivityApproveStatus.REJECTED,
+      price: 20,
+      locationId: locations[4].id,
+      createById: admin.id,
+      rejectReason: "รูปภาพไม่ถูกต้อง",
+    },
   ];
 
+  const createdActivities = [];
 
+  for (const item of activities) {
+    const activity = await prisma.activity.create({
+      data: {
+        locationId: item.locationId,
+        createById: item.createById,
+        updatedById: item.createById,
+        name: item.name,
+        tagline: item.tagline,
+        description: item.description,
+        activityType: item.activityType,
+        phone: "0812345678",
+        lineUrl: "https://line.me/ti/p/example",
+        facebookUrl: "https://facebook.com/example",
+        price: item.price,
+        statusActivity: item.publish,
+        statusApprove: item.approve,
+        rejectReason: item.rejectReason,
+        startDate: new Date("2026-08-01T09:00:00"),
+        dueDate: new Date("2026-08-01T18:00:00"),
+        viewCount: Math.floor(Math.random() * 500),
+      },
+    });
 
+    createdActivities.push(activity);
+  }
 
-
+  console.log("✅ Activities seeded");
 
   // =========================
-  // CREATE ACTIVITY
+  // ACTIVITY SCHEDULE + FILES
   // =========================
 
+  for (const activity of createdActivities) {
 
-  for(
-    const item of activities
-  ){
-
-
-    const activity =
-      await prisma.activity.create({
-
-        data:{
-
-          locationId:
-            location.id,
-
-
-          createById:
-            admin.id,
-
-
-          name:
-            item.name,
-
-
-          tagline:
-            item.tagline,
-
-
-          description:
-            item.description,
-
-
-          activityType:
-            item.type,
-
-
-          phone:
-            "0812345678",
+    const schedules = [
+      {
+        title: "ลงทะเบียน",
+        description: "ลงทะเบียนเข้าร่วมกิจกรรม",
+        startDateTime: new Date("2026-08-01T08:30:00"),
+        endDateTime: new Date("2026-08-01T09:00:00"),
+      },
+      {
+        title: "เริ่มกิจกรรม",
+        description: "เริ่มกิจกรรมหลัก",
+        startDateTime: new Date("2026-08-01T09:00:00"),
+        endDateTime: new Date("2026-08-01T12:00:00"),
+      },
+      {
+        title: "พักกลางวัน",
+        description: "รับประทานอาหารกลางวัน",
+        startDateTime: new Date("2026-08-01T12:00:00"),
+        endDateTime: new Date("2026-08-01T13:00:00"),
+      },
+      {
+        title: "กิจกรรมช่วงบ่าย",
+        description: "ดำเนินกิจกรรมต่อ",
+        startDateTime: new Date("2026-08-01T13:00:00"),
+        endDateTime: new Date("2026-08-01T16:30:00"),
+      },
+      {
+        title: "ปิดงาน",
+        description: "กล่าวปิดงาน",
+        startDateTime: new Date("2026-08-01T16:30:00"),
+        endDateTime: new Date("2026-08-01T17:00:00"),
+      },
+    ];
 
 
-          lineUrl:
-            "https://line.me/ti/p/@festia",
+    for (const schedule of schedules) {
 
-
-          facebookUrl:
-            "https://facebook.com/festia",
-
-
-          price:
-            item.price,
-
-
-          statusActivity:
-            item.publish,
-
-
-          statusApprove:
-            item.publish === ActivityPublishStatus.DRAFT
-            ? ActivityApproveStatus.PENDING
-            : item.approve,
-
-
-          startDate:
-            new Date("2026-04-10"),
-
-
-          dueDate:
-            new Date("2026-04-12"),
-
-
-          updatedById:
-            admin.id
-
-
-        }
-
+      const createdSchedule = await prisma.activitySchedule.create({
+        data: {
+          activityId: activity.id,
+          ...schedule,
+        },
       });
 
 
+      await prisma.activityScheduleFile.createMany({
+        data: [
+          {
+            scheduleId: createdSchedule.id,
+            filePath: `/uploads/activity/${activity.id}/schedule/${createdSchedule.id}/cover.jpg`,
+            type: ImageType.COVER,
+          },
+          {
+            scheduleId: createdSchedule.id,
+            filePath: `/uploads/activity/${activity.id}/schedule/${createdSchedule.id}/gallery-1.jpg`,
+            type: ImageType.GALLERY,
+          },
+          {
+            scheduleId: createdSchedule.id,
+            filePath: `/uploads/activity/${activity.id}/schedule/${createdSchedule.id}/gallery-2.jpg`,
+            type: ImageType.GALLERY,
+          },
+          {
+            scheduleId: createdSchedule.id,
+            filePath: `/uploads/activity/${activity.id}/schedule/${createdSchedule.id}/video.mp4`,
+            type: ImageType.VIDEO,
+          },
+        ],
+      });
 
-
-    // =========================
-    // SCHEDULE
-    // =========================
-
-
-    await prisma.activitySchedule.createMany({
-
-      data:[
-
-        {
-
-          activityId:
-            activity.id,
-
-          title:
-            "พิธีเปิดกิจกรรม",
-
-          description:
-            "เริ่มกิจกรรมและกล่าวต้อนรับผู้เข้าร่วม",
-
-          startDateTime:
-            new Date(
-              "2026-04-10T09:00:00"
-            ),
-
-          endDateTime:
-            new Date(
-              "2026-04-10T10:00:00"
-            )
-
-        },
-
-
-        {
-
-          activityId:
-            activity.id,
-
-          title:
-            "กิจกรรมหลัก",
-
-          description:
-            "ดำเนินกิจกรรมตามกำหนดการ",
-
-          startDateTime:
-            new Date(
-              "2026-04-10T13:00:00"
-            ),
-
-          endDateTime:
-            new Date(
-              "2026-04-10T17:00:00"
-            )
-
-        }
-
-      ]
-
-    });
-
+    }
 
   }
 
+  console.log("✅ Activity schedules + files seeded");
 
+  // =========================
+  // ACTIVITY FILES
+  // =========================
 
+  for (const activity of createdActivities) {
+    await prisma.activityFile.createMany({
+      data: [
+        {
+          activityId: activity.id,
+          filePath: `/uploads/activity/${activity.id}/cover.jpg`,
+          type: ImageType.COVER,
+        },
+        {
+          activityId: activity.id,
+          filePath: `/uploads/activity/${activity.id}/gallery-1.jpg`,
+          type: ImageType.GALLERY,
+        },
+        {
+          activityId: activity.id,
+          filePath: `/uploads/activity/${activity.id}/gallery-2.jpg`,
+          type: ImageType.GALLERY,
+        },
+        {
+          activityId: activity.id,
+          filePath: `/uploads/activity/${activity.id}/video.mp4`,
+          type: ImageType.VIDEO,
+        },
+      ],
+    });
+  }
 
-  console.log(
-    "✅ Seed completed"
-  );
+  console.log("✅ Activity files seeded");
 
+  console.log("🎉 Seed completed successfully!");
 }
 
-
-
 main()
-
-.catch((error)=>{
-
- console.error(error);
-
- process.exit(1);
-
-})
-
-.finally(async()=>{
-
- await prisma.$disconnect();
-
-});
+  .catch((e) => {
+    console.error("❌ Seed failed");
+    console.error(e);
+    process.exit(1);
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
+  });

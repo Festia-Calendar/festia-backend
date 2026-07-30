@@ -5,6 +5,46 @@ import { authMiddleware, allowRoles } from "../Middleware/auth-middleware.js";
 const activityRoutes = Router();
 
 /*
+ * คำอธิบาย : Admin ดึงรายการกิจกรรม Draft
+ */
+activityRoutes.get(
+  "/admin/activity/draft",
+  authMiddleware,
+  allowRoles("ADMIN"),
+  ActivityController.getDraftActivityByAdmin
+);
+
+/*
+ * คำอธิบาย : Admin ลบกิจกรรม Draft ของตัวเอง
+ */
+activityRoutes.delete(
+  "/admin/activity/draft/:id",
+  authMiddleware,
+  allowRoles("ADMIN"),
+  ActivityController.deleteDraftActivityByAdmin
+);
+
+/*
+ * คำอธิบาย : SuperAdmin ดูรายการกิจกรรมรออนุมัติ
+ */
+activityRoutes.get(
+  "/superadmin/activity-requests",
+  authMiddleware,
+  allowRoles("SUPERADMIN"),
+  ActivityController.getRequestActivitiesForSuperAdmin
+);
+
+/*
+ * คำอธิบาย : SuperAdmin ดูรายละเอียดกิจกรรมรออนุมัติ
+ */
+activityRoutes.get(
+  "/superadmin/activity-requests/:id",
+  authMiddleware,
+  allowRoles("SUPERADMIN"),
+  ActivityController.getRequestActivityDetailForSuperAdmin
+);
+
+/*
  * คำอธิบาย : Route สำหรับ SuperAdmin ดึงรายการกิจกรรมทั้งหมด
 */
 activityRoutes.get(
@@ -80,6 +120,63 @@ activityRoutes.delete(
   authMiddleware,
   allowRoles("ADMIN"),
   ActivityController.deleteActivityByAdmin
+);
+
+
+/*
+ * คำอธิบาย : Route สำหรับ Admin แก้กิจกรรมตัวเอง
+*/
+activityRoutes.put(
+  "/admin/activity/:id",
+  authMiddleware,
+  allowRoles("ADMIN"),
+  ActivityController.updateActivityByAdmin
+);
+
+/*
+ * คำอธิบาย : Route สำหรับ SuperAdmin แก้กิจกรรมทั้งหมด
+*/
+activityRoutes.put(
+  "/superadmin/activity/:id",
+  authMiddleware,
+  allowRoles("SUPERADMIN"),
+  ActivityController.updateActivityBySuperAdmin
+);
+
+/*
+ * คำอธิบาย : SuperAdmin อนุมัติกิจกรรม
+ */
+activityRoutes.patch(
+  "/superadmin/activity-requests/:id/approve",
+  authMiddleware,
+  allowRoles("SUPERADMIN"),
+  ActivityController.approveActivityBySuperAdmin
+);
+
+/*
+ * คำอธิบาย : SuperAdmin ปฏิเสธกิจกรรม
+ */
+activityRoutes.patch(
+  "/superadmin/activity-requests/:id/reject",
+  authMiddleware,
+  allowRoles("SUPERADMIN"),
+  ActivityController.rejectActivityBySuperAdmin
+);
+
+/*
+ * คำอธิบาย : หน้า Home ดูรายละเอียดกิจกรรม
+ */
+activityRoutes.get(
+  "/home/activity/:id",
+  ActivityController.getActivityDetailForHome
+);
+
+/*
+ * คำอธิบาย : หน้า Home ดึงกิจกรรมเดือนปัจจุบัน
+ */
+activityRoutes.get(
+  "/home/activities",
+  ActivityController.getHomeActivity
 );
 
 export { activityRoutes };

@@ -16,6 +16,9 @@ app.use(cookieParser());
 const port = process.env.PORT || 3000;
 app.use("/api", rootRouter);
 
+
+app.use("/uploads", express.static("uploads"));
+
 /*
  * คำอธิบาย : เริ่มต้น Server
  * Input : ไม่มี

@@ -171,11 +171,11 @@ export const createActivityByAdmin = async (
  * Input : params.id - รหัสกิจกรรม
  * Output : กิจกรรมถูกลบสำเร็จ
 */
-export const deleteActivityBySuperAdmin = async(
-  req:Request,
-  res:Response
-)=>{
-  try{
+export const deleteActivityBySuperAdmin = async (
+  req: Request,
+  res: Response
+) => {
+  try {
     const activity =
       await ActivityService.deleteActivityBySuperAdmin(
         Number(req.params.id)
@@ -186,7 +186,7 @@ export const deleteActivityBySuperAdmin = async(
       "Delete activity successfully",
       activity
     );
-  }catch(error){
+  } catch (error) {
     return createErrorResponse(
       res,
       400,
@@ -200,11 +200,11 @@ export const deleteActivityBySuperAdmin = async(
  * Input : params.id - รหัสกิจกรรม
  * Output : กิจกรรมถูกลบสำเร็จ
  */
-export const deleteActivityByAdmin = async(
-  req:Request,
-  res:Response
-)=>{
-  try{
+export const deleteActivityByAdmin = async (
+  req: Request,
+  res: Response
+) => {
+  try {
     const activity =
       await ActivityService.deleteActivityByAdmin(
         Number(req.params.id),
@@ -216,7 +216,298 @@ export const deleteActivityByAdmin = async(
       "Delete activity successfully",
       activity
     );
-  }catch(error){
+  } catch (error) {
+    return createErrorResponse(
+      res,
+      400,
+      (error as Error).message
+    );
+  }
+};
+
+/*
+ * คำอธิบาย : แก้ไขกิจกรรมโดย SuperAdmin
+ * Input : params.id - รหัสกิจกรรม, req.body - ข้อมูลกิจกรรมใหม่
+ * Output:
+ * 200 - แก้ไขกิจกรรมสำเร็จ
+ * 400 - Error message
+ */
+export const updateActivityBySuperAdmin = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const activity =
+      await ActivityService.updateActivityBySuperAdmin(
+        Number(req.params.id),
+        req.user.id,
+        req.body
+      );
+    return createResponse(
+      res,
+      200,
+      "Update activity successfully",
+      activity
+    );
+  } catch (error) {
+    return createErrorResponse(
+      res,
+      400,
+      (error as Error).message
+    );
+  }
+};
+
+/*
+ * คำอธิบาย : แก้ไขกิจกรรมโดย Admin
+ * Input : params.id - รหัสกิจกรรม, req.body - ข้อมูลกิจกรรมใหม่
+ * Output:
+ * 200 - แก้ไขกิจกรรมสำเร็จ
+ * 400 - Error message
+ */
+export const updateActivityByAdmin = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const activity =
+      await ActivityService.updateActivityByAdmin(
+        Number(req.params.id),
+        req.user.id,
+        req.body
+      );
+    return createResponse(
+      res,
+      200,
+      "Update activity successfully",
+      activity
+    );
+  } catch (error) {
+    return createErrorResponse(
+      res,
+      400,
+      (error as Error).message
+    );
+  }
+};
+
+/*
+ * คำอธิบาย : SuperAdmin อนุมัติกิจกรรม
+ */
+export const approveActivityBySuperAdmin =
+  async (
+    req: Request,
+    res: Response
+  ) => {
+    try {
+      const activity =
+        await ActivityService.approveActivityBySuperAdmin(
+          Number(req.params.id),
+          req.user.id
+        );
+      return createResponse(
+        res,
+        200,
+        "Approve activity successfully",
+        activity
+      );
+    } catch (error) {
+      return createErrorResponse(
+        res,
+        400,
+        (error as Error).message
+      );
+    }
+  };
+
+/*
+ * คำอธิบาย : SuperAdmin Reject กิจกรรม
+ */
+export const rejectActivityBySuperAdmin =
+  async (
+    req: Request,
+    res: Response
+  ) => {
+    try {
+      const activity =
+        await ActivityService.rejectActivityBySuperAdmin(
+          Number(req.params.id),
+          req.user.id,
+          req.body.reason
+        );
+      return createResponse(
+        res,
+        200,
+        "Reject activity successfully",
+        activity
+      );
+    } catch (error) {
+      return createErrorResponse(
+        res,
+        400,
+        (error as Error).message
+      );
+    }
+  };
+
+/*
+ * คำอธิบาย : SuperAdmin ดึงรายการกิจกรรมที่รออนุมัติ
+ */
+export const getRequestActivitiesForSuperAdmin =
+  async (
+    req: Request,
+    res: Response
+  ) => {
+    try {
+      const activities =
+        await ActivityService.getRequestsActivitiesForSuperAdmin();
+      return createResponse(
+        res,
+        200,
+        "Get pending activities successfully",
+        activities
+      );
+    } catch (error) {
+      return createErrorResponse(
+        res,
+        400,
+        (error as Error).message
+      );
+    }
+  };
+
+/*
+ * คำอธิบาย : SuperAdmin ดูรายละเอียดกิจกรรมที่รออนุมัติ
+ */
+export const getRequestActivityDetailForSuperAdmin =
+  async (
+    req: Request,
+    res: Response
+  ) => {
+    try {
+      const activity =
+        await ActivityService.getRequestsActivityDetailForSuperAdmin(
+          Number(req.params.id)
+        );
+      return createResponse(
+        res,
+        200,
+        "Get pending activity detail successfully",
+        activity
+      );
+    } catch (error) {
+      return createErrorResponse(
+        res,
+        400,
+        (error as Error).message
+      );
+    }
+  };
+
+/*
+ * คำอธิบาย : ดึงรายละเอียดกิจกรรมสำหรับหน้า Home
+ * Input : params.id
+ * Output : รายละเอียดกิจกรรมทั้งหมด
+*/
+export const getActivityDetailForHome =
+async (
+  req: Request,
+  res: Response
+)=>{
+  try {
+    const activity =
+      await ActivityService.getActivityDetailForHome(
+        Number(req.params.id)
+      );
+    return createResponse(
+      res,
+      200,
+      "Get activity detail successfully",
+      activity
+    );
+  } catch(error){
+    return createErrorResponse(
+      res,
+      400,
+      (error as Error).message
+    );
+  }
+};
+
+/*
+ * คำอธิบาย : หน้า Home ดึงกิจกรรมเดือนปัจจุบัน
+ */
+export const getHomeActivity = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const activities =
+      await ActivityService.getHomeActivity();
+    return createResponse(
+      res,
+      200,
+      "Get home activities successfully",
+      activities
+    );
+  } catch(error) {
+    return createErrorResponse(
+      res,
+      400,
+      (error as Error).message
+    );
+  }
+};
+
+/*
+ * คำอธิบาย : Admin ดูรายการกิจกรรม Draft ของตัวเอง
+ */
+export const getDraftActivityByAdmin = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const activities =
+      await ActivityService.getDraftActivityByAdmin(
+        req.user.id
+      );
+    return createResponse(
+      res,
+      200,
+      "Get draft activities successfully",
+      activities
+    );
+  } catch(error) {
+    return createErrorResponse(
+      res,
+      400,
+      (error as Error).message
+    );
+  }
+};
+
+/*
+ * คำอธิบาย : Admin ลบกิจกรรม Draft ของตัวเอง
+ * Input : params.id - รหัสกิจกรรม
+ * Output : กิจกรรมถูกลบสำเร็จ
+ */
+export const deleteDraftActivityByAdmin = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const activity =
+      await ActivityService.deleteDraftActivityByAdmin(
+        Number(req.params.id),
+        req.user.id
+      );
+    return createResponse(
+      res,
+      200,
+      "Delete draft activity successfully",
+      activity
+    );
+  } catch(error) {
     return createErrorResponse(
       res,
       400,
