@@ -109,30 +109,34 @@ export const getActivityDetailByAdmin = async (
   }
 };
 
-export const createActivityBySuperAdmin = async (
-  req: Request,
-  res: Response
-) => {
+/*
+ * คำอธิบาย : สร้างกิจกรรม
+ */
+export async function createActivityBySuperAdmin(req: Request, res: Response) {
   try {
-    const activity =
-      await ActivityService.createActivityBySuperAdmin(
-        req.user.id,
-        req.body
-      );
-    return createResponse(
-      res,
-      201,
-      "Create activity successfully",
-      activity
+    const activityData = JSON.parse(req.body.activity);
+
+    const files = req.files as Record<string, Express.Multer.File[]>;
+
+    const activity = await ActivityService.createActivityBySuperAdmin(
+      activityData,
+      files,
+      req.user.id
     );
-  } catch (error) {
-    return createErrorResponse(
-      res,
-      400,
-      (error as Error).message
-    );
+    res.status(201).json({
+      success: true,
+      message: "สร้างกิจกรรมสำเร็จ",
+      data: activity,
+    });
+  } catch (error: any) {
+    console.error(error);
+
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
   }
-};
+}
 
 /*
  * คำอธิบาย : สร้างกิจกรรมโดย Admin
@@ -141,30 +145,31 @@ export const createActivityBySuperAdmin = async (
  * 201 - สร้างกิจกรรมสำเร็จ
  * 400 - Error message
  */
-export const createActivityByAdmin = async (
-  req: Request,
-  res: Response
-) => {
+export async function createActivityByAdmin(req: Request, res: Response) {
   try {
-    const activity =
-      await ActivityService.createActivityByAdmin(
-        req.user.id,
-        req.body
-      );
-    return createResponse(
-      res,
-      201,
-      "Create activity successfully",
-      activity
+    const activityData = JSON.parse(req.body.activity);
+
+    const files = req.files as Record<string, Express.Multer.File[]>;
+
+    const activity = await ActivityService.createActivityBySuperAdmin(
+      activityData,
+      files,
+      req.user.id
     );
-  } catch (error) {
-    return createErrorResponse(
-      res,
-      400,
-      (error as Error).message
-    );
+    res.status(201).json({
+      success: true,
+      message: "สร้างกิจกรรมสำเร็จ",
+      data: activity,
+    });
+  } catch (error: any) {
+    console.error(error);
+
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
   }
-};
+}
 
 /*
  * คำอธิบาย : ลบกิจกรรมโดย SuperAdmin

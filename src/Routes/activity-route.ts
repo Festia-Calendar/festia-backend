@@ -1,6 +1,8 @@
 import { Router } from "express";
 import * as ActivityController from "../Controllers/activity-controller.js";
 import { authMiddleware, allowRoles } from "../Middleware/auth-middleware.js";
+import { upload } from "../Libs/uploadFile.js";
+import { compressUploaded } from "../Middleware/upload-middleware.js";
 
 const activityRoutes = Router();
 
@@ -83,12 +85,30 @@ activityRoutes.get(
 );
 
 /*
- * คำอธิบาย : Route สำหรับ SuperAdmin สร้างกิจกรรมใหม่
-*/
+ * คำอธิบาย : สร้างกิจกรรม โดย SUPERADMIN
+ */
 activityRoutes.post(
   "/superadmin/activity",
   authMiddleware,
   allowRoles("SUPERADMIN"),
+
+  upload.fields([
+    {
+      name: "cover",
+      maxCount: 1,
+    },
+    {
+      name: "media",
+      maxCount: 4,
+    },
+    {
+      name: "scheduleFiles",
+      maxCount: 999,
+    },
+  ]),
+
+  compressUploaded,
+
   ActivityController.createActivityBySuperAdmin
 );
 
@@ -99,6 +119,24 @@ activityRoutes.post(
   "/admin/activity",
   authMiddleware,
   allowRoles("ADMIN"),
+
+  upload.fields([
+    {
+      name: "cover",
+      maxCount: 1,
+    },
+    {
+      name: "media",
+      maxCount: 4,
+    },
+    {
+      name: "scheduleFiles",
+      maxCount: 999,
+    },
+  ]),
+
+  compressUploaded,
+
   ActivityController.createActivityByAdmin
 );
 

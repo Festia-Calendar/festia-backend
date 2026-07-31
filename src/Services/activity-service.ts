@@ -4,6 +4,7 @@
  * ใช้ Prisma ORM ในการติดต่อฐานข้อมูล
 */
 import prisma from "../Services/database-service.js";
+import { ImageType } from "@prisma/client";
 
 export const getActivityBySuperAdmin = async () => {
   return await prisma.activity.findMany({
@@ -147,172 +148,231 @@ export const getActivityDetailBySuperadmin = async (
  * Input : userId - ผู้สร้าง, data - ข้อมูลกิจกรรม
  * Output : ข้อมูลกิจกรรม พร้อม location, files และ schedules
  */
-export const createActivityBySuperAdmin = async (
-  userId: number,
-  data: any
-) => {
-  let locationId: number | null = null;
-  if (data.location) {
-    const location = await prisma.location.create({
+export async function createActivityBySuperAdmin(
+  activityData: any,
+  files: Record<string, Express.Multer.File[]>,
+  userId: number
+) {
+  const cover = files.cover?.[0];
+  const media = files.media ?? [];
+  const scheduleFiles = files.scheduleFiles ?? [];
+
+  return await prisma.$transaction(async (tx) => {
+    const activity = await tx.activity.create({
       data: {
-        name: data.location.name,
-        zone: data.location.zone,
-        province: data.location.province,
-        district: data.location.district,
-        subDistrict: data.location.subDistrict,
-        detail: data.location.detail ?? null,
-        latitude: Number(data.location.latitude),
-        longitude: Number(data.location.longitude),
-      }
-    });
-    locationId = location.id;
-  }
-  return prisma.activity.create({
-    data: {
-      createById: userId,
-      updatedById: userId,
-      locationId,
-      name: data.name,
-      tagline: data.tagline ?? null,
-      description: data.description ?? null,
-      activityType: data.activityType,
-      phone: data.phone ?? null,
-      lineUrl: data.lineUrl ?? null,
-      facebookUrl: data.facebookUrl ?? null,
-      price: data.price ?? null,
-      startDate: data.startDate
-        ? new Date(data.startDate)
-        : null,
-      dueDate: data.dueDate
-        ? new Date(data.dueDate)
-        : null,
-      statusActivity:
-        data.statusActivity ?? "PUBLISH",
-      statusApprove:
-        data.statusApprove ?? "PENDING",
-      activityFile: {
-        create:
-          data.activityFiles?.map((file: any) => ({
-            filePath: file.filePath,
-            type: file.type,
-          })) ?? []
+        locationId: activityData.locationId,
+        createById: userId,
+
+        name: activityData.name,
+        tagline: activityData.tagline,
+        description: activityData.description,
+
+        activityType: activityData.activityType,
+
+        phone: activityData.phone,
+        lineUrl: activityData.lineUrl,
+        facebookUrl: activityData.facebookUrl,
+
+        price: activityData.price,
+
+        statusActivity: activityData.statusActivity,
+        statusApprove: activityData.statusApprove,
+
+        startDate: new Date(activityData.startDate),
+        dueDate: new Date(activityData.dueDate),
       },
-      schedules: {
-        create:
-          data.schedules?.map((item: any) => ({
-            title: item.title ?? null,
-            description:
-              item.description ?? null,
-            startDateTime:
-              new Date(item.startDateTime),
-            endDateTime:
-              new Date(item.endDateTime),
-            files: {
-              create:
-                item.files?.map((file: any) => ({
-                  filePath: file.filePath,
-                  type: file.type,
-                })) ?? []
-            }
-          })) ?? []
-      }
-    },
-    include: {
-      location: true,
-      activityFile: true,
-      schedules: {
-        include: {
-          files: true
+    });
+        if (cover) {
+      await tx.activityFile.create({
+        data: {
+          activityId: activity.id,
+          filePath: cover.filename,
+          type: ImageType.COVER,
+        },
+      });
+    }
+        for (const file of media) {
+      const extension = file.originalname
+        .split(".")
+        .pop()
+        ?.toLowerCase();
+
+      await tx.activityFile.create({
+        data: {
+          activityId: activity.id,
+
+          filePath: file.filename,
+
+          type:
+            extension === "mp4" ||
+            extension === "mov" ||
+            extension === "m4v" ||
+            extension === "webm"
+              ? ImageType.VIDEO
+              : ImageType.GALLERY,
+        },
+      });
+    }
+        /*
+     * สร้างกำหนดการ
+     */
+    for (const schedule of activityData.schedules) {
+      const createdSchedule = await tx.activitySchedule.create({
+        data: {
+          activityId: activity.id,
+
+          title: schedule.title,
+
+          description: schedule.description,
+
+          startDateTime: new Date(schedule.startDateTime),
+
+          endDateTime: new Date(schedule.endDateTime),
+        },
+      });
+
+      /*
+       * บันทึกรูปของกำหนดการ
+       */
+      if (Array.isArray(schedule.fileIndexes)) {
+        for (const index of schedule.fileIndexes) {
+          const file = scheduleFiles[index];
+
+          if (!file) {
+            continue;
+          }
+
+          await tx.activityScheduleFile.create({
+            data: {
+              scheduleId: createdSchedule.id,
+
+              filePath: file.filename,
+
+              type: ImageType.GALLERY,
+            },
+          });
         }
       }
     }
+
+    return activity;
   });
-};
+}
 
 /*
  * คำอธิบาย : สร้างกิจกรรมโดย Admin
  * Input : userId - ผู้สร้าง, data - ข้อมูลกิจกรรม
  * Output : ข้อมูลกิจกรรม พร้อม location, files และ schedules
  */
-export const createActivityByAdmin = async (
-  userId: number,
-  data: any
-) => {
-  let locationId: number | null = null;
-  if (data.location) {
-    const location = await prisma.location.create({
+export async function createActivityByAdmin(
+  activityData: any,
+  files: Record<string, Express.Multer.File[]>,
+  userId: number
+) {
+  const cover = files.cover?.[0];
+  const media = files.media ?? [];
+  const scheduleFiles = files.scheduleFiles ?? [];
+
+  return await prisma.$transaction(async (tx) => {
+    const activity = await tx.activity.create({
       data: {
-        name: data.location.name,
-        zone: data.location.zone,
-        province: data.location.province,
-        district: data.location.district,
-        subDistrict: data.location.subDistrict,
-        detail: data.location.detail ?? null,
-        latitude: Number(data.location.latitude),
-        longitude: Number(data.location.longitude),
-      }
-    });
-    locationId = location.id;
-  }
-  return prisma.activity.create({
-    data: {
-      createById: userId,
-      updatedById: userId,
-      locationId,
-      name: data.name,
-      tagline: data.tagline ?? null,
-      description: data.description ?? null,
-      activityType: data.activityType,
-      phone: data.phone ?? null,
-      lineUrl: data.lineUrl ?? null,
-      facebookUrl: data.facebookUrl ?? null,
-      price: data.price ?? null,
-      startDate: data.startDate
-        ? new Date(data.startDate)
-        : null,
-      dueDate: data.dueDate
-        ? new Date(data.dueDate)
-        : null,
-      statusActivity: "UNPUBLISH",
-      statusApprove: "PENDING",
-      activityFile: {
-        create:
-          data.activityFiles?.map((file: any) => ({
-            filePath: file.filePath,
-            type: file.type,
-          })) ?? []
+        locationId: activityData.locationId,
+        createById: userId,
+
+        name: activityData.name,
+        tagline: activityData.tagline,
+        description: activityData.description,
+
+        activityType: activityData.activityType,
+
+        phone: activityData.phone,
+        lineUrl: activityData.lineUrl,
+        facebookUrl: activityData.facebookUrl,
+
+        price: activityData.price,
+
+        statusActivity: activityData.statusActivity,
+        statusApprove: activityData.statusApprove,
+
+        startDate: new Date(activityData.startDate),
+        dueDate: new Date(activityData.dueDate),
       },
-      schedules: {
-        create:
-          data.schedules?.map((item: any) => ({
-            title: item.title ?? null,
-            description:
-              item.description ?? null,
-            startDateTime:
-              new Date(item.startDateTime),
-            endDateTime:
-              new Date(item.endDateTime),
-            files: {
-              create:
-                item.files?.map((file: any) => ({
-                  filePath: file.filePath,
-                  type: file.type,
-                })) ?? []
-            }
-          })) ?? []
-      }
-    },
-    include: {
-      location: true,
-      activityFile: true,
-      schedules: {
-        include: {
-          files: true
+    });
+        if (cover) {
+      await tx.activityFile.create({
+        data: {
+          activityId: activity.id,
+          filePath: cover.filename,
+          type: ImageType.COVER,
+        },
+      });
+    }
+        for (const file of media) {
+      const extension = file.originalname
+        .split(".")
+        .pop()
+        ?.toLowerCase();
+
+      await tx.activityFile.create({
+        data: {
+          activityId: activity.id,
+
+          filePath: file.filename,
+
+          type:
+            extension === "mp4" ||
+            extension === "mov" ||
+            extension === "m4v" ||
+            extension === "webm"
+              ? ImageType.VIDEO
+              : ImageType.GALLERY,
+        },
+      });
+    }
+        /*
+     * สร้างกำหนดการ
+     */
+    for (const schedule of activityData.schedules) {
+      const createdSchedule = await tx.activitySchedule.create({
+        data: {
+          activityId: activity.id,
+
+          title: schedule.title,
+
+          description: schedule.description,
+
+          startDateTime: new Date(schedule.startDateTime),
+
+          endDateTime: new Date(schedule.endDateTime),
+        },
+      });
+
+      /*
+       * บันทึกรูปของกำหนดการ
+       */
+      if (Array.isArray(schedule.fileIndexes)) {
+        for (const index of schedule.fileIndexes) {
+          const file = scheduleFiles[index];
+
+          if (!file) {
+            continue;
+          }
+
+          await tx.activityScheduleFile.create({
+            data: {
+              scheduleId: createdSchedule.id,
+
+              filePath: file.filename,
+
+              type: ImageType.GALLERY,
+            },
+          });
         }
       }
     }
+    return activity;
   });
-};
+}
 
 
 export const deleteActivityBySuperAdmin = async (
