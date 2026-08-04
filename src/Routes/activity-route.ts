@@ -167,7 +167,22 @@ activityRoutes.delete(
 activityRoutes.put(
   "/admin/activity/:id",
   authMiddleware,
-  allowRoles("ADMIN"),
+  allowRoles("admin"),
+  upload.fields([
+    {
+      name: "cover",
+      maxCount: 1,
+    },
+    {
+      name: "media",
+      maxCount: 4,
+    },
+    {
+      name: "scheduleFiles",
+      maxCount: 999,
+    },
+  ]),
+  compressUploaded,
   ActivityController.updateActivityByAdmin
 );
 
@@ -178,6 +193,21 @@ activityRoutes.put(
   "/superadmin/activity/:id",
   authMiddleware,
   allowRoles("SUPERADMIN"),
+  upload.fields([
+    {
+      name: "cover",
+      maxCount: 1,
+    },
+    {
+      name: "media",
+      maxCount: 4,
+    },
+    {
+      name: "scheduleFiles",
+      maxCount: 999,
+    },
+  ]),
+  compressUploaded,
   ActivityController.updateActivityBySuperAdmin
 );
 

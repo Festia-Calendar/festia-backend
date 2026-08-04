@@ -237,31 +237,34 @@ export const deleteActivityByAdmin = async (
  * 200 - แก้ไขกิจกรรมสำเร็จ
  * 400 - Error message
  */
-export const updateActivityBySuperAdmin = async (
+export async function updateActivityBySuperAdmin(
   req: Request,
   res: Response
-) => {
+) {
   try {
-    const activity =
-      await ActivityService.updateActivityBySuperAdmin(
-        Number(req.params.id),
-        req.user.id,
-        req.body
-      );
+    const activityId = Number(req.params.id);
+    const activityData = JSON.parse(req.body.activity);
+    const activity = await ActivityService.updateActivityBySuperAdmin(
+      activityId,
+      activityData,
+      req.files as Record<string, Express.Multer.File[]>,
+      req.user.id
+    );
     return createResponse(
       res,
       200,
-      "Update activity successfully",
+      "Update activity success",
       activity
     );
   } catch (error) {
     return createErrorResponse(
       res,
-      400,
-      (error as Error).message
+      500,
+      "Update activity failed",
+      error
     );
   }
-};
+}
 
 /*
  * คำอธิบาย : แก้ไขกิจกรรมโดย Admin
@@ -270,31 +273,36 @@ export const updateActivityBySuperAdmin = async (
  * 200 - แก้ไขกิจกรรมสำเร็จ
  * 400 - Error message
  */
-export const updateActivityByAdmin = async (
+
+export async function updateActivityByAdmin(
   req: Request,
   res: Response
-) => {
+) {
   try {
-    const activity =
-      await ActivityService.updateActivityByAdmin(
-        Number(req.params.id),
-        req.user.id,
-        req.body
-      );
+    const activityId = Number(req.params.id);
+    const activityData = JSON.parse(req.body.activity);
+    const activity = await ActivityService.updateActivityByAdmin(
+      activityId,
+      activityData,
+      req.files as Record<string, Express.Multer.File[]>,
+      req.user.id
+    );
+
     return createResponse(
       res,
       200,
-      "Update activity successfully",
+      "Update activity success",
       activity
     );
   } catch (error) {
     return createErrorResponse(
       res,
-      400,
-      (error as Error).message
+      500,
+      "Update activity failed",
+      error
     );
   }
-};
+}
 
 /*
  * คำอธิบาย : SuperAdmin อนุมัติกิจกรรม
