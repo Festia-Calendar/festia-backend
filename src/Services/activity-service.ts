@@ -1491,3 +1491,74 @@ export const deleteDraftActivityByAdmin = async (
     },
   });
 };
+
+/*
+ * คำอธิบาย : SuperAdmin ดึงประวัติกิจกรรมที่สิ้นสุดแล้วทั้งหมด
+ * Input : -
+ * Output : ชื่อกิจกรรม ประเภท สถานที่ วันจัดกิจกรรม ค่าเข้าชม
+ */
+export async function getActivityHistoryBySuperAdmin() {
+  return await prisma.activity.findMany({
+    where: {
+      isDeleted: false,
+      dueDate: {
+        lt: new Date(),
+      },
+    },
+
+    select: {
+      id: true,
+      name: true,
+      activityType: true,
+      startDate: true,
+      dueDate: true,
+      price: true,
+      viewCount: true,
+
+      location: {
+        select: {
+          name: true,
+        },
+      },
+    },
+
+    orderBy: {
+      dueDate: "desc",
+    },
+  });
+}
+
+/*
+ * คำอธิบาย : Admin ดึงประวัติกิจกรรมที่สิ้นสุดแล้วของตัวเอง
+ * Input : userId - เจ้าของกิจกรรม
+ * Output : ชื่อกิจกรรม ประเภท สถานที่ วันจัดกิจกรรม ค่าเข้าชม
+ */
+export async function getActivityHistoryByAdmin(userId: number) {
+  return await prisma.activity.findMany({
+    where: {
+      createById: userId,
+      isDeleted: false,
+      dueDate: {
+        lt: new Date(),
+      },
+    },
+    select: {
+      id: true,
+      name: true,
+      activityType: true,
+      startDate: true,
+      dueDate: true,
+      price: true,
+      viewCount: true,
+
+      location: {
+        select: {
+          name: true,
+        },
+      },
+    },
+    orderBy: {
+      dueDate: "desc",
+    },
+  });
+}

@@ -528,3 +528,61 @@ export const deleteDraftActivityByAdmin = async (
     );
   }
 };
+
+/*
+ * คำอธิบาย : SuperAdmin ดึงประวัติกิจกรรมที่สิ้นสุดแล้วทั้งหมด
+ * Input : -
+ * Output : รายการกิจกรรมที่สิ้นสุดแล้วทั้งหมดในระบบ
+ */
+export async function getActivityHistoryBySuperAdmin(
+  req: Request,
+  res: Response
+) {
+  try {
+    const activities =
+      await ActivityService.getActivityHistoryBySuperAdmin();
+
+    return createResponse(
+      res,
+      200,
+      "Get activity history success",
+      activities
+    );
+  } catch (error) {
+    return createErrorResponse(
+      res,
+      500,
+      "Get activity history failed",
+      error
+    );
+  }
+}
+
+/*
+ * คำอธิบาย : Admin ดึงประวัติกิจกรรมที่สิ้นสุดแล้วของตัวเอง
+ * Input : req.user.id
+ * Output : รายการกิจกรรมที่สิ้นสุดแล้วของผู้ใช้งาน
+ */
+export async function getActivityHistoryByAdmin(
+  req: Request,
+  res: Response
+) {
+  try {
+    const activities =
+      await ActivityService.getActivityHistoryByAdmin(req.user.id);
+
+    return createResponse(
+      res,
+      200,
+      "Get activity history success",
+      activities
+    );
+  } catch (error) {
+    return createErrorResponse(
+      res,
+      500,
+      "Get activity history failed",
+      error
+    );
+  }
+}

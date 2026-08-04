@@ -7,6 +7,26 @@ import { compressUploaded } from "../Middleware/upload-middleware.js";
 const activityRoutes = Router();
 
 /*
+ * คำอธิบาย : SuperAdmin ดึงประวัติกิจกรรมที่สิ้นสุดแล้วทั้งหมด
+ */
+activityRoutes.get(
+  "/superadmin/activity/histories",
+  authMiddleware,
+  allowRoles("SUPERADMIN"),
+  ActivityController.getActivityHistoryBySuperAdmin
+);
+
+/*
+ * คำอธิบาย : Admin ดึงประวัติกิจกรรมที่สิ้นสุดแล้วของตัวเอง
+ */
+activityRoutes.get(
+  "/admin/activity/histories",
+  authMiddleware,
+  allowRoles("ADMIN"),
+  ActivityController.getActivityHistoryByAdmin
+);
+
+/*
  * คำอธิบาย : Admin ดึงรายการกิจกรรม Draft
  */
 activityRoutes.get(
