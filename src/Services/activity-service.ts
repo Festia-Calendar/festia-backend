@@ -4,7 +4,7 @@
  * ใช้ Prisma ORM ในการติดต่อฐานข้อมูล
 */
 import prisma from "../Services/database-service.js";
-import { ImageType } from "@prisma/client";
+import { ImageType, ActivityApproveStatus, } from "@prisma/client";
 
 export const getActivityBySuperAdmin = async () => {
   return await prisma.activity.findMany({
@@ -160,29 +160,41 @@ export async function createActivityBySuperAdmin(
   return await prisma.$transaction(async (tx) => {
     const activity = await tx.activity.create({
       data: {
-        locationId: activityData.locationId,
-        createById: userId,
+        createdBy: {
+          connect: {
+            id: userId,
+          },
+        },
+
+        location: {
+          create: {
+            name: activityData.location.name,
+            zone: activityData.location.zone,
+            province: activityData.location.province,
+            district: activityData.location.district,
+            subDistrict: activityData.location.subDistrict,
+            detail: activityData.location.detail,
+            latitude: activityData.location.latitude,
+            longitude: activityData.location.longitude,
+          },
+        },
 
         name: activityData.name,
         tagline: activityData.tagline,
         description: activityData.description,
-
         activityType: activityData.activityType,
-
         phone: activityData.phone,
         lineUrl: activityData.lineUrl,
         facebookUrl: activityData.facebookUrl,
-
         price: activityData.price,
-
         statusActivity: activityData.statusActivity,
-        statusApprove: activityData.statusApprove,
-
+        statusApprove: ActivityApproveStatus.APPROVE,
         startDate: new Date(activityData.startDate),
         dueDate: new Date(activityData.dueDate),
       },
     });
-        if (cover) {
+    /* บันทึกรูปปก */
+    if (cover) {
       await tx.activityFile.create({
         data: {
           activityId: activity.id,
@@ -191,71 +203,84 @@ export async function createActivityBySuperAdmin(
         },
       });
     }
-        for (const file of media) {
+    /* บันทึกรูปและวิดีโอเพิ่มเติม */
+    for (const file of media) {
       const extension = file.originalname
         .split(".")
         .pop()
         ?.toLowerCase();
-
       await tx.activityFile.create({
         data: {
           activityId: activity.id,
-
           filePath: file.filename,
-
           type:
             extension === "mp4" ||
-            extension === "mov" ||
-            extension === "m4v" ||
-            extension === "webm"
+              extension === "mov" ||
+              extension === "m4v" ||
+              extension === "webm"
               ? ImageType.VIDEO
               : ImageType.GALLERY,
         },
       });
     }
-        /*
-     * สร้างกำหนดการ
-     */
+    /* สร้างกำหนดการกิจกรรม */
     for (const schedule of activityData.schedules) {
       const createdSchedule = await tx.activitySchedule.create({
         data: {
-          activityId: activity.id,
-
+          activity: {
+            connect: {
+              id: activity.id,
+            },
+          },
           title: schedule.title,
-
           description: schedule.description,
-
           startDateTime: new Date(schedule.startDateTime),
-
           endDateTime: new Date(schedule.endDateTime),
         },
       });
-
-      /*
-       * บันทึกรูปของกำหนดการ
-       */
+      /* บันทึกรูปของกำหนดการ */
       if (Array.isArray(schedule.fileIndexes)) {
         for (const index of schedule.fileIndexes) {
           const file = scheduleFiles[index];
-
           if (!file) {
             continue;
           }
-
           await tx.activityScheduleFile.create({
             data: {
-              scheduleId: createdSchedule.id,
-
+              schedule: {
+                connect: {
+                  id: createdSchedule.id,
+                },
+              },
               filePath: file.filename,
-
               type: ImageType.GALLERY,
             },
           });
         }
       }
     }
-
-    return activity;
+    return await tx.activity.findUnique({
+      where: {
+        id: activity.id,
+      },
+      include: {
+        location: true,
+        activityFile: true,
+        schedules: {
+          include: {
+            files: true,
+          },
+        },
+        createdBy: {
+          select: {
+            id: true,
+            fname: true,
+            lname: true,
+            email: true,
+          },
+        },
+      },
+    });
   });
 }
 
@@ -276,29 +301,41 @@ export async function createActivityByAdmin(
   return await prisma.$transaction(async (tx) => {
     const activity = await tx.activity.create({
       data: {
-        locationId: activityData.locationId,
-        createById: userId,
+        createdBy: {
+          connect: {
+            id: userId,
+          },
+        },
+
+        location: {
+          create: {
+            name: activityData.location.name,
+            zone: activityData.location.zone,
+            province: activityData.location.province,
+            district: activityData.location.district,
+            subDistrict: activityData.location.subDistrict,
+            detail: activityData.location.detail,
+            latitude: activityData.location.latitude,
+            longitude: activityData.location.longitude,
+          },
+        },
 
         name: activityData.name,
         tagline: activityData.tagline,
         description: activityData.description,
-
         activityType: activityData.activityType,
-
         phone: activityData.phone,
         lineUrl: activityData.lineUrl,
         facebookUrl: activityData.facebookUrl,
-
         price: activityData.price,
-
         statusActivity: activityData.statusActivity,
-        statusApprove: activityData.statusApprove,
-
+        statusApprove: ActivityApproveStatus.PENDING,
         startDate: new Date(activityData.startDate),
         dueDate: new Date(activityData.dueDate),
       },
     });
-        if (cover) {
+    /* บันทึกรูปปก */
+    if (cover) {
       await tx.activityFile.create({
         data: {
           activityId: activity.id,
@@ -307,70 +344,84 @@ export async function createActivityByAdmin(
         },
       });
     }
-        for (const file of media) {
+    /* บันทึกรูปและวิดีโอเพิ่มเติม */
+    for (const file of media) {
       const extension = file.originalname
         .split(".")
         .pop()
         ?.toLowerCase();
-
       await tx.activityFile.create({
         data: {
           activityId: activity.id,
-
           filePath: file.filename,
-
           type:
             extension === "mp4" ||
-            extension === "mov" ||
-            extension === "m4v" ||
-            extension === "webm"
+              extension === "mov" ||
+              extension === "m4v" ||
+              extension === "webm"
               ? ImageType.VIDEO
               : ImageType.GALLERY,
         },
       });
     }
-        /*
-     * สร้างกำหนดการ
-     */
+    /* สร้างกำหนดการกิจกรรม */
     for (const schedule of activityData.schedules) {
       const createdSchedule = await tx.activitySchedule.create({
         data: {
-          activityId: activity.id,
-
+          activity: {
+            connect: {
+              id: activity.id,
+            },
+          },
           title: schedule.title,
-
           description: schedule.description,
-
           startDateTime: new Date(schedule.startDateTime),
-
           endDateTime: new Date(schedule.endDateTime),
         },
       });
-
-      /*
-       * บันทึกรูปของกำหนดการ
-       */
+      /* บันทึกรูปของกำหนดการ */
       if (Array.isArray(schedule.fileIndexes)) {
         for (const index of schedule.fileIndexes) {
           const file = scheduleFiles[index];
-
           if (!file) {
             continue;
           }
-
           await tx.activityScheduleFile.create({
             data: {
-              scheduleId: createdSchedule.id,
-
+              schedule: {
+                connect: {
+                  id: createdSchedule.id,
+                },
+              },
               filePath: file.filename,
-
               type: ImageType.GALLERY,
             },
           });
         }
       }
     }
-    return activity;
+    return await tx.activity.findUnique({
+      where: {
+        id: activity.id,
+      },
+      include: {
+        location: true,
+        activityFile: true,
+        schedules: {
+          include: {
+            files: true,
+          },
+        },
+        createdBy: {
+          select: {
+            id: true,
+            fname: true,
+            lname: true,
+            email: true,
+          },
+        },
+      },
+    });
   });
 }
 

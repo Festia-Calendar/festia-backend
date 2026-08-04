@@ -151,7 +151,7 @@ export async function createActivityByAdmin(req: Request, res: Response) {
 
     const files = req.files as Record<string, Express.Multer.File[]>;
 
-    const activity = await ActivityService.createActivityBySuperAdmin(
+    const activity = await ActivityService.createActivityByAdmin(
       activityData,
       files,
       req.user.id
