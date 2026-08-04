@@ -151,7 +151,7 @@ export async function createActivityByAdmin(req: Request, res: Response) {
 
     const files = req.files as Record<string, Express.Multer.File[]>;
 
-    const activity = await ActivityService.createActivityBySuperAdmin(
+    const activity = await ActivityService.createActivityByAdmin(
       activityData,
       files,
       req.user.id
@@ -237,31 +237,34 @@ export const deleteActivityByAdmin = async (
  * 200 - แก้ไขกิจกรรมสำเร็จ
  * 400 - Error message
  */
-export const updateActivityBySuperAdmin = async (
+export async function updateActivityBySuperAdmin(
   req: Request,
   res: Response
-) => {
+) {
   try {
-    const activity =
-      await ActivityService.updateActivityBySuperAdmin(
-        Number(req.params.id),
-        req.user.id,
-        req.body
-      );
+    const activityId = Number(req.params.id);
+    const activityData = JSON.parse(req.body.activity);
+    const activity = await ActivityService.updateActivityBySuperAdmin(
+      activityId,
+      activityData,
+      req.files as Record<string, Express.Multer.File[]>,
+      req.user.id
+    );
     return createResponse(
       res,
       200,
-      "Update activity successfully",
+      "Update activity success",
       activity
     );
   } catch (error) {
     return createErrorResponse(
       res,
-      400,
-      (error as Error).message
+      500,
+      "Update activity failed",
+      error
     );
   }
-};
+}
 
 /*
  * คำอธิบาย : แก้ไขกิจกรรมโดย Admin
@@ -270,31 +273,36 @@ export const updateActivityBySuperAdmin = async (
  * 200 - แก้ไขกิจกรรมสำเร็จ
  * 400 - Error message
  */
-export const updateActivityByAdmin = async (
+
+export async function updateActivityByAdmin(
   req: Request,
   res: Response
-) => {
+) {
   try {
-    const activity =
-      await ActivityService.updateActivityByAdmin(
-        Number(req.params.id),
-        req.user.id,
-        req.body
-      );
+    const activityId = Number(req.params.id);
+    const activityData = JSON.parse(req.body.activity);
+    const activity = await ActivityService.updateActivityByAdmin(
+      activityId,
+      activityData,
+      req.files as Record<string, Express.Multer.File[]>,
+      req.user.id
+    );
+
     return createResponse(
       res,
       200,
-      "Update activity successfully",
+      "Update activity success",
       activity
     );
   } catch (error) {
     return createErrorResponse(
       res,
-      400,
-      (error as Error).message
+      500,
+      "Update activity failed",
+      error
     );
   }
-};
+}
 
 /*
  * คำอธิบาย : SuperAdmin อนุมัติกิจกรรม
@@ -520,3 +528,61 @@ export const deleteDraftActivityByAdmin = async (
     );
   }
 };
+
+/*
+ * คำอธิบาย : SuperAdmin ดึงประวัติกิจกรรมที่สิ้นสุดแล้วทั้งหมด
+ * Input : -
+ * Output : รายการกิจกรรมที่สิ้นสุดแล้วทั้งหมดในระบบ
+ */
+export async function getActivityHistoryBySuperAdmin(
+  req: Request,
+  res: Response
+) {
+  try {
+    const activities =
+      await ActivityService.getActivityHistoryBySuperAdmin();
+
+    return createResponse(
+      res,
+      200,
+      "Get activity history success",
+      activities
+    );
+  } catch (error) {
+    return createErrorResponse(
+      res,
+      500,
+      "Get activity history failed",
+      error
+    );
+  }
+}
+
+/*
+ * คำอธิบาย : Admin ดึงประวัติกิจกรรมที่สิ้นสุดแล้วของตัวเอง
+ * Input : req.user.id
+ * Output : รายการกิจกรรมที่สิ้นสุดแล้วของผู้ใช้งาน
+ */
+export async function getActivityHistoryByAdmin(
+  req: Request,
+  res: Response
+) {
+  try {
+    const activities =
+      await ActivityService.getActivityHistoryByAdmin(req.user.id);
+
+    return createResponse(
+      res,
+      200,
+      "Get activity history success",
+      activities
+    );
+  } catch (error) {
+    return createErrorResponse(
+      res,
+      500,
+      "Get activity history failed",
+      error
+    );
+  }
+}

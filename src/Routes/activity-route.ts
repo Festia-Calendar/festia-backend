@@ -7,6 +7,26 @@ import { compressUploaded } from "../Middleware/upload-middleware.js";
 const activityRoutes = Router();
 
 /*
+ * คำอธิบาย : SuperAdmin ดึงประวัติกิจกรรมที่สิ้นสุดแล้วทั้งหมด
+ */
+activityRoutes.get(
+  "/superadmin/activity/histories",
+  authMiddleware,
+  allowRoles("SUPERADMIN"),
+  ActivityController.getActivityHistoryBySuperAdmin
+);
+
+/*
+ * คำอธิบาย : Admin ดึงประวัติกิจกรรมที่สิ้นสุดแล้วของตัวเอง
+ */
+activityRoutes.get(
+  "/admin/activity/histories",
+  authMiddleware,
+  allowRoles("ADMIN"),
+  ActivityController.getActivityHistoryByAdmin
+);
+
+/*
  * คำอธิบาย : Admin ดึงรายการกิจกรรม Draft
  */
 activityRoutes.get(
@@ -167,7 +187,22 @@ activityRoutes.delete(
 activityRoutes.put(
   "/admin/activity/:id",
   authMiddleware,
-  allowRoles("ADMIN"),
+  allowRoles("admin"),
+  upload.fields([
+    {
+      name: "cover",
+      maxCount: 1,
+    },
+    {
+      name: "media",
+      maxCount: 4,
+    },
+    {
+      name: "scheduleFiles",
+      maxCount: 999,
+    },
+  ]),
+  compressUploaded,
   ActivityController.updateActivityByAdmin
 );
 
@@ -178,6 +213,21 @@ activityRoutes.put(
   "/superadmin/activity/:id",
   authMiddleware,
   allowRoles("SUPERADMIN"),
+  upload.fields([
+    {
+      name: "cover",
+      maxCount: 1,
+    },
+    {
+      name: "media",
+      maxCount: 4,
+    },
+    {
+      name: "scheduleFiles",
+      maxCount: 999,
+    },
+  ]),
+  compressUploaded,
   ActivityController.updateActivityBySuperAdmin
 );
 
