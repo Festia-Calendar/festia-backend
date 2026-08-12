@@ -3,7 +3,7 @@
  */
 
 import type { Request, Response } from "express";
-import * as AuthService from "../Services/auth-service.js";
+import * as AuthService from "../Services/Auth/auth-service.js";
 import {
   createErrorResponse,
   createResponse,

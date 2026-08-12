@@ -1,19 +1,15 @@
-/*
+/**
  * คำอธิบาย : Service สำหรับจัดการ Authentication
  * รับผิดชอบการตรวจสอบข้อมูลผู้ใช้และสร้าง JWT
  */
 
 import bcrypt from "bcrypt";
-import prisma from "../Services/database-service.js";
-import { generateToken } from "../Libs/token.js";
-
-interface LoginBody {
-  username: string;
-  password: string;
-}
+import prisma from "../database-service.js";
+import { generateToken } from "../../Libs/token.js";
+import { LoginDto } from "./auth-dto.js";
 
 export async function login(
-  body: LoginBody,
+  body: LoginDto,
   ip: string,
   expirationSeconds: number
 ) {
@@ -87,13 +83,17 @@ export async function getProfile(userId: number) {
     where: { id: userId },
     include: { role: true },
   });
-  if (!user) throw new Error("User not found");
+
+  if (!user) {
+    throw new Error("User not found");
+  }
+
   return {
-      id: user.id,
-      username: user.username,
-      email: user.email,
-      fname: user.fname,
-      lname: user.lname,
-      role: user.role.name,
+    id: user.id,
+    username: user.username,
+    email: user.email,
+    fname: user.fname,
+    lname: user.lname,
+    role: user.role.name,
   };
 }
