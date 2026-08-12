@@ -777,9 +777,9 @@ export async function updateActivityBySuperAdmin(
   files: Record<string, Express.Multer.File[]>,
   userId: number
 ) {
-  const cover = files.cover?.[0];
-  const media = files.media ?? [];
-  const scheduleFiles = files.scheduleFiles ?? [];
+  const cover = files?.cover?.[0];
+  const media = files?.media ?? [];
+  const scheduleFiles = files?.scheduleFiles ?? [];
 
   return await prisma.$transaction(async (tx) => {
     /*
@@ -845,8 +845,8 @@ export async function updateActivityBySuperAdmin(
 
         statusApprove: ActivityApproveStatus.APPROVE,
 
-        startDate: new Date(activityData.startDate),
-        dueDate: new Date(activityData.dueDate),
+        startDate: activityData.startDate ? new Date(activityData.startDate) : null,
+        dueDate: activityData.dueDate ? new Date(activityData.dueDate) : null,
 
         updatedBy: {
           connect: {
@@ -855,8 +855,9 @@ export async function updateActivityBySuperAdmin(
         },
       },
     });
+    
     /*
-     * เปลี่ยนรูปปก
+     * เปลี่ยนรูปปก หรือลบรูปปกเก่าทิ้ง
      */
     if (cover) {
       await tx.activityFile.deleteMany({
@@ -873,13 +874,20 @@ export async function updateActivityBySuperAdmin(
           type: ImageType.COVER,
         },
       });
+    } else if (activityData.isCoverDeleted) {
+      // ⭐ รับรู้ว่าโดนกดลบรูปปกจาก Frontend
+      await tx.activityFile.deleteMany({
+        where: {
+          activityId: activityId,
+          type: ImageType.COVER,
+        },
+      });
     }
 
     /*
      * ลบ Media เดิม
-     * Frontend ส่ง mediaDeleteIds มาเป็น array ของ id
      */
-    if (Array.isArray(activityData.mediaDeleteIds)) {
+    if (Array.isArray(activityData.mediaDeleteIds) && activityData.mediaDeleteIds.length > 0) {
       await tx.activityFile.deleteMany({
         where: {
           id: {
@@ -915,12 +923,9 @@ export async function updateActivityBySuperAdmin(
     }
 
     /*
-     * แก้ไขกำหนดการกิจกรรม
-     */
-        /*
      * ลบกำหนดการที่ Frontend ลบออก
      */
-    if (Array.isArray(activityData.scheduleDeleteIds)) {
+    if (Array.isArray(activityData.scheduleDeleteIds) && activityData.scheduleDeleteIds.length > 0) {
       await tx.activitySchedule.deleteMany({
         where: {
           id: {
@@ -948,8 +953,8 @@ export async function updateActivityBySuperAdmin(
           data: {
             title: schedule.title,
             description: schedule.description,
-            startDateTime: new Date(schedule.startDateTime),
-            endDateTime: new Date(schedule.endDateTime),
+            startDateTime: schedule.startDateTime ? new Date(schedule.startDateTime) : null,
+            endDateTime: schedule.endDateTime ? new Date(schedule.endDateTime) : null,
           },
         });
 
@@ -958,7 +963,7 @@ export async function updateActivityBySuperAdmin(
         /*
          * ลบรูปเดิมที่ผู้ใช้เลือก
          */
-        if (Array.isArray(schedule.deleteFileIds)) {
+        if (Array.isArray(schedule.deleteFileIds) && schedule.deleteFileIds.length > 0) {
           await tx.activityScheduleFile.deleteMany({
             where: {
               id: {
@@ -977,8 +982,8 @@ export async function updateActivityBySuperAdmin(
             activityId: activityId,
             title: schedule.title,
             description: schedule.description,
-            startDateTime: new Date(schedule.startDateTime),
-            endDateTime: new Date(schedule.endDateTime),
+            startDateTime: schedule.startDateTime ? new Date(schedule.startDateTime) : null,
+            endDateTime: schedule.endDateTime ? new Date(schedule.endDateTime) : null,
           },
         });
 
@@ -1016,7 +1021,6 @@ export async function updateActivityBySuperAdmin(
       },
       include: {
         location: true,
-
         createdBy: {
           select: {
             id: true,
@@ -1024,7 +1028,6 @@ export async function updateActivityBySuperAdmin(
             lname: true,
           },
         },
-
         updatedBy: {
           select: {
             id: true,
@@ -1032,9 +1035,7 @@ export async function updateActivityBySuperAdmin(
             lname: true,
           },
         },
-
         activityFile: true,
-
         schedules: {
           include: {
             files: true,
@@ -1393,6 +1394,7 @@ export const getHomeActivity = async () => {
       id: true,
       name: true,
       tagline: true,
+      activityType: true,
       startDate: true,
       dueDate: true,
       price: true,
