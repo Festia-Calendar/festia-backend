@@ -4,8 +4,8 @@
  */
 
 import bcrypt from "bcrypt";
-import prisma from "../Services/database-service";
-import { generateToken } from "../Libs/token";
+import prisma from "../Services/database-service.js";
+import { generateToken } from "../Libs/token.js";
 
 interface LoginBody {
   username: string;
