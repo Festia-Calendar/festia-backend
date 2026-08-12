@@ -4,6 +4,7 @@
  * ใช้ Prisma ORM ในการติดต่อฐานข้อมูล
 */
 import prisma from "../database-service.js";
+import "reflect-metadata";
 import {
   ActivityApproveStatus,
   ActivityPublishStatus,

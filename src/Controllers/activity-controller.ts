@@ -636,15 +636,18 @@ export async function getActivityDetailForHome(
 
 /**
  * คำอธิบาย : ดึงรายการกิจกรรมสำหรับหน้า Home ตามเดือนปัจจุบัน
- * Input : -
- * Output : 200 - รายการกิจกรรมที่จัดในเดือนปัจจุบัน
+ * Input : query - ข้อมูล Pagination
+ * Output : 200 - รายการกิจกรรมที่จัดในเดือนปัจจุบัน พร้อมข้อมูล Pagination
  */
 export async function getHomeActivity(
   req: Request,
   res: Response
 ) {
   try {
-    const result = await ActivityService.getHomeActivity();
+    const result = await ActivityService.getHomeActivity(
+      req.query as ActivityQueryDto
+    );
+
     return createResponse(
       res,
       200,
