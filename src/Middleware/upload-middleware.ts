@@ -1,7 +1,7 @@
 // Middlewares/upload-middleware.ts
 import type { Request, Response, NextFunction } from "express";
 import path from "path";
-import { compressImage, compressVideo } from "../Libs/compressFile";
+import { compressImage, compressVideo } from "../Libs/compressFile.js";
 
 const IMAGE_EXT = new Set([".jpg", ".jpeg", ".png"]);
 const VIDEO_EXT = new Set([".mp4"]); // จะเพิ่ม .mov/.m4v/.webm ก็ใส่ตรงนี้

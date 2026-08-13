@@ -4,8 +4,8 @@
  */
 
 import type { Request, Response, NextFunction } from "express";
-import { createErrorResponse } from "../Libs/createResponse";
-import { verifyToken } from "../Libs/token";
+import { createErrorResponse } from "../Libs/createResponse.js";
+import { verifyToken } from "../Libs/token.js";
 
 /*
  * ฟังก์ชัน : authMiddleware

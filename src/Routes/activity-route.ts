@@ -53,7 +53,7 @@ activityRoutes.get(
   "/superadmin/activity-requests",
   authMiddleware,
   allowRoles("SUPERADMIN"),
-  ActivityController.getRequestActivitiesForSuperAdmin
+  ActivityController.getRequestsActivitiesForSuperAdmin
 );
 
 /*
@@ -63,7 +63,7 @@ activityRoutes.get(
   "/superadmin/activity-requests/:id",
   authMiddleware,
   allowRoles("SUPERADMIN"),
-  ActivityController.getRequestActivityDetailForSuperAdmin
+  ActivityController.getRequestsActivityDetailForSuperAdmin
 );
 
 /*

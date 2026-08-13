@@ -3,11 +3,11 @@
  */
 
 import type { Request, Response } from "express";
-import * as AuthService from "../Services/auth-service";
+import * as AuthService from "../Services/Auth/auth-service.js";
 import {
   createErrorResponse,
   createResponse,
-} from "../Libs/createResponse";
+} from "../Libs/createResponse.js";
 
 export const JWT_EXPIRATION_SECONDS = 24 * 60 * 60;
 

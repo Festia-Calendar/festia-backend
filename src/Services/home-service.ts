@@ -5,7 +5,7 @@
  * โดยเชื่อมต่อกับฐานข้อมูลผ่าน Prisma
  */
 
-import prisma from "../Services/database-service";
+import prisma from "../Services/database-service.js";
 
 /*
  * คำอธิบาย :
