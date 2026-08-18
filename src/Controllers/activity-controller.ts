@@ -730,10 +730,9 @@ export async function getActivityHistoryBySuperAdmin(
   res: Response
 ) {
   try {
-    const query = req.query as unknown as ActivityQueryDto;
+    const query = req.query as unknown as PaginationDto;
     const result =
       await ActivityService.getActivityHistoryBySuperAdmin(query);
-
     return createResponse(
       res,
       200,
@@ -761,7 +760,7 @@ export async function getActivityHistoryByAdmin(
 ) {
   try {
     const userId = Number((req as any).user?.id);
-    const query = req.query as unknown as ActivityQueryDto;
+    const query = req.query as unknown as PaginationDto;
     const result = await ActivityService.getActivityHistoryByAdmin(
       userId,
       query

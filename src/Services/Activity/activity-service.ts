@@ -47,98 +47,95 @@ import { ActivityDto, ActivityQueryDto, UpdateActivityDto, } from "../Activity/a
 export const getActivityBySuperAdmin = async (
   query: PaginationDto
 ): Promise<PaginationResponse<any>> => {
-  const page = query.page ?? 1;
-  const limit = query.limit ?? 10;
+  const page = Number(query.page) || 1;
+  const limit = Number(query.limit) || 10;
+
   const skip = (page - 1) * limit;
+
   const search = query.search?.trim();
-  const orConditions: any[] = [];
+
+  const where: any = {
+    isDeleted: false,
+  };
+
   if (search) {
-    // ชื่อกิจกรรม
-    orConditions.push({
-      name: {
-        contains: search,
-      },
-    });
-    // ภูมิภาค
-    orConditions.push({
-      location: {
-        zone: {
-          contains: search,
-        },
-      },
-    });
-    // จังหวัด
-    orConditions.push({
-      location: {
-        province: {
-          contains: search,
-        },
-      },
-    });
-    // อำเภอ
-    orConditions.push({
-      location: {
-        district: {
-          contains: search,
-        },
-      },
-    });
-    // ตำบล
-    orConditions.push({
-      location: {
-        subDistrict: {
-          contains: search,
-        },
-      },
-    });
-    // ประเภทกิจกรรม
-    if (Object.values(ActivityType).includes(search as ActivityType)) {
-      orConditions.push({
-        activityType: search as ActivityType,
-      });
+    where.name = {
+      contains: search,
+    };
+  }
+
+  if (query.activityType) {
+    where.activityType = query.activityType;
+  }
+
+  if (
+    query.zone ||
+    query.province ||
+    query.district ||
+    query.subDistrict
+  ) {
+    where.location = {};
+
+    if (query.zone) {
+      where.location.zone = query.zone;
     }
-    // วันที่
-    const searchDate = new Date(`${search}T00:00:00`);
-    if (!isNaN(searchDate.getTime())) {
-      const nextDate = new Date(searchDate);
-      nextDate.setDate(nextDate.getDate() + 1);
-      // วันที่เริ่ม
-      orConditions.push({
-        startDate: {
-          gte: searchDate,
-          lt: nextDate,
-        },
-      });
-      // วันที่สิ้นสุด
-      orConditions.push({
-        dueDate: {
-          gte: searchDate,
-          lt: nextDate,
-        },
-      });
+
+    if (query.province) {
+      where.location.province = query.province;
+    }
+
+    if (query.district) {
+      where.location.district = query.district;
+    }
+
+    if (query.subDistrict) {
+      where.location.subDistrict = query.subDistrict;
     }
   }
-  const where = {
-    isDeleted: false,
-    ...(orConditions.length > 0 && {
-      OR: orConditions,
-    }),
-  };
+
+  // วันที่เริ่ม
+  if (query.startDate) {
+    const startDate = new Date(`${query.startDate}T00:00:00`);
+    const nextDate = new Date(startDate);
+    nextDate.setDate(nextDate.getDate() + 1);
+
+    where.startDate = {
+      gte: startDate,
+      lt: nextDate,
+    };
+  }
+
+  // วันที่สิ้นสุด
+  if (query.dueDate) {
+    const dueDate = new Date(`${query.dueDate}T00:00:00`);
+    const nextDate = new Date(dueDate);
+    nextDate.setDate(nextDate.getDate() + 1);
+
+    where.dueDate = {
+      gte: dueDate,
+      lt: nextDate,
+    };
+  }
+
   const [data, totalCount] = await prisma.$transaction([
     prisma.activity.findMany({
       where,
       skip,
       take: limit,
-      include: {
-        location: true,
-        schedules: true,
-        createdBy: {
+      select: {
+        id: true,
+        name: true,
+        activityType: true,
+        statusActivity: true,
+        statusApprove: true,
+
+        location: {
           select: {
-            id: true,
-            username: true,
-            fname: true,
-            lname: true,
-            email: true,
+            name: true,
+            zone: true,
+            province: true,
+            district: true,
+            subDistrict: true,
           },
         },
       },
@@ -146,6 +143,7 @@ export const getActivityBySuperAdmin = async (
         createdAt: "desc",
       },
     }),
+
     prisma.activity.count({
       where,
     }),
@@ -163,7 +161,6 @@ export const getActivityBySuperAdmin = async (
     },
   };
 };
-
 /**
  * คำอธิบาย : (Admin) ดึงรายการ Activity ที่สร้างโดย Admin
  * รองรับ Pagination และ Search
@@ -196,96 +193,89 @@ export const getActivityByAdmin = async (
   const page = query.page ?? 1;
   const limit = query.limit ?? 10;
   const skip = (page - 1) * limit;
-  const search = query.search?.trim();
-  const orConditions: any[] = [];
-  if (search) {
-    // ชื่อกิจกรรม
-    orConditions.push({
-      name: {
-        contains: search,
-      },
-    });
-    // ภูมิภาค
-    orConditions.push({
-      location: {
-        zone: {
-          contains: search,
-        },
-      },
-    });
-    // จังหวัด
-    orConditions.push({
-      location: {
-        province: {
-          contains: search,
-        },
-      },
-    });
-    // อำเภอ
-    orConditions.push({
-      location: {
-        district: {
-          contains: search,
-        },
-      },
-    });
-    // ตำบล
-    orConditions.push({
-      location: {
-        subDistrict: {
-          contains: search,
-        },
-      },
-    });
-    // ประเภทกิจกรรม
-    if (Object.values(ActivityType).includes(search as ActivityType)) {
-      orConditions.push({
-        activityType: search as ActivityType,
-      });
-    }
-    // วันที่
-    const searchDate = new Date(`${search}T00:00:00`);
-    if (!isNaN(searchDate.getTime())) {
-      const nextDate = new Date(searchDate);
-      nextDate.setDate(nextDate.getDate() + 1);
-      // วันที่เริ่ม
-      orConditions.push({
-        startDate: {
-          gte: searchDate,
-          lt: nextDate,
-        },
-      });
-      // วันที่สิ้นสุด
-      orConditions.push({
-        dueDate: {
-          gte: searchDate,
-          lt: nextDate,
-        },
-      });
-    }
-  }
-  const where = {
+
+  const where: any = {
     isDeleted: false,
     createById: userId,
-    ...(orConditions.length > 0 && {
-      OR: orConditions,
-    }),
   };
+  // Search ชื่อกิจกรรม
+  if (query.search?.trim()) {
+    where.name = {
+      contains: query.search.trim(),
+    };
+  }
+  // Filter ประเภทกิจกรรม
+  if (query.activityType) {
+    where.activityType = query.activityType;
+  }
+  // Filter สถานที่
+  if (
+    query.zone ||
+    query.province ||
+    query.district ||
+    query.subDistrict
+  ) {
+    where.location = {};
+
+    if (query.zone) {
+      where.location.zone = query.zone;
+    }
+
+    if (query.province) {
+      where.location.province = query.province;
+    }
+
+    if (query.district) {
+      where.location.district = query.district;
+    }
+
+    if (query.subDistrict) {
+      where.location.subDistrict = query.subDistrict;
+    }
+  }
+  // Filter วันที่เริ่มกิจกรรม
+  if (query.startDate) {
+    const startDate = new Date(`${query.startDate}T00:00:00`);
+    const nextDate = new Date(startDate);
+
+    nextDate.setDate(nextDate.getDate() + 1);
+
+    where.startDate = {
+      gte: startDate,
+      lt: nextDate,
+    };
+  }
+  // Filter วันที่สิ้นสุดกิจกรรม
+  if (query.dueDate) {
+    const dueDate = new Date(`${query.dueDate}T00:00:00`);
+    const nextDate = new Date(dueDate);
+
+    nextDate.setDate(nextDate.getDate() + 1);
+
+    where.dueDate = {
+      gte: dueDate,
+      lt: nextDate,
+    };
+  }
   const [data, totalCount] = await prisma.$transaction([
     prisma.activity.findMany({
       where,
       skip,
       take: limit,
-      include: {
-        location: true,
-        schedules: true,
-        createdBy: {
+      select: {
+        id: true,
+        name: true,
+        activityType: true,
+        statusActivity: true,
+        statusApprove: true,
+
+        location: {
           select: {
-            id: true,
-            username: true,
-            fname: true,
-            lname: true,
-            email: true,
+            name: true,
+            zone: true,
+            province: true,
+            district: true,
+            subDistrict: true,
           },
         },
       },
@@ -925,9 +915,9 @@ export async function updateActivityByAdmin(
           filePath: file.filename,
           type:
             extension === "mp4" ||
-            extension === "mov" ||
-            extension === "m4v" ||
-            extension === "webm"
+              extension === "mov" ||
+              extension === "m4v" ||
+              extension === "webm"
               ? ImageType.VIDEO
               : ImageType.GALLERY,
         },
@@ -1219,9 +1209,9 @@ export async function updateActivityBySuperAdmin(
           filePath: file.filename,
           type:
             extension === "mp4" ||
-            extension === "mov" ||
-            extension === "m4v" ||
-            extension === "webm"
+              extension === "mov" ||
+              extension === "m4v" ||
+              extension === "webm"
               ? ImageType.VIDEO
               : ImageType.GALLERY,
         },
@@ -1456,57 +1446,76 @@ export const getRequestsActivitiesForSuperAdmin = async (
   const page = query.page ?? 1;
   const limit = query.limit ?? 10;
   const skip = (page - 1) * limit;
-  const search = query.search?.trim();
-  const orConditions: any[] = [];
-  if (search) {
-    orConditions.push(
-      {
-        name: {
-          contains: search,
-        },
-      },
-      {
-        location: {
-          zone: {
-            contains: search,
-          },
-        },
-      },
-      {
-        location: {
-          province: {
-            contains: search,
-          },
-        },
-      },
-      {
-        location: {
-          district: {
-            contains: search,
-          },
-        },
-      },
-      {
-        location: {
-          subDistrict: {
-            contains: search,
-          },
-        },
-      }
-    );
-    if (Object.values(ActivityType).includes(search as ActivityType)) {
-      orConditions.push({
-        activityType: search as ActivityType,
-      });
-    }
-  }
-  const where = {
+
+  const where: any = {
     isDeleted: false,
     statusApprove: ActivityApproveStatus.PENDING,
-    ...(orConditions.length > 0 && {
-      OR: orConditions,
-    }),
   };
+
+  // Search ชื่อกิจกรรม
+  if (query.search?.trim()) {
+    where.name = {
+      contains: query.search.trim(),
+    };
+  }
+
+  // Filter ประเภทกิจกรรม
+  if (query.activityType) {
+    where.activityType = query.activityType;
+  }
+
+  // Filter สถานที่
+  if (
+    query.zone ||
+    query.province ||
+    query.district ||
+    query.subDistrict
+  ) {
+    where.location = {};
+
+    if (query.zone) {
+      where.location.zone = query.zone;
+    }
+
+    if (query.province) {
+      where.location.province = query.province;
+    }
+
+    if (query.district) {
+      where.location.district = query.district;
+    }
+
+    if (query.subDistrict) {
+      where.location.subDistrict = query.subDistrict;
+    }
+  }
+
+  // Filter วันที่เริ่มกิจกรรม
+  if (query.startDate) {
+    const startDate = new Date(`${query.startDate}T00:00:00`);
+    const nextDate = new Date(startDate);
+
+    nextDate.setDate(nextDate.getDate() + 1);
+
+    where.startDate = {
+      gte: startDate,
+      lt: nextDate,
+    };
+  }
+
+  // Filter วันที่สิ้นสุดกิจกรรม
+  if (query.dueDate) {
+    const dueDate = new Date(`${query.dueDate}T00:00:00`);
+    const nextDate = new Date(dueDate);
+
+    nextDate.setDate(nextDate.getDate() + 1);
+
+    where.dueDate = {
+      gte: dueDate,
+      lt: nextDate,
+    };
+  }
+
   const [data, totalCount] = await prisma.$transaction([
     prisma.activity.findMany({
       where,
@@ -1521,10 +1530,10 @@ export const getRequestsActivitiesForSuperAdmin = async (
         activityType: true,
         startDate: true,
         dueDate: true,
-        statusApprove: true,
         location: {
           select: {
             name: true,
+            zone: true,
             province: true,
             district: true,
             subDistrict: true,
@@ -1532,11 +1541,14 @@ export const getRequestsActivitiesForSuperAdmin = async (
         },
       },
     }),
+
     prisma.activity.count({
       where,
     }),
   ]);
+
   const totalPages = Math.ceil(totalCount / limit);
+
   return {
     data,
     pagination: {
@@ -1914,79 +1926,85 @@ export const deleteDraftActivityByAdmin = async (
  *          วันจัดกิจกรรม ค่าเข้าชม จำนวนการเข้าชม และข้อมูล Pagination
  */
 export async function getActivityHistoryBySuperAdmin(
-  query: ActivityQueryDto
+  query: PaginationDto
 ): Promise<PaginationResponse<any>> {
-  const page = Number(query.page ?? 1);
-  const limit = Number(query.limit ?? 10);
+  const page = query.page ?? 1;
+  const limit = query.limit ?? 10;
   const skip = (page - 1) * limit;
-  const search = query.search?.trim();
-  const orConditions: any[] = [];
-  if (search) {
-    orConditions.push({
-      name: {
-        contains: search,
-      },
-    });
-    orConditions.push({
-      location: {
-        zone: {
-          contains: search,
-        },
-      },
-    });
-    orConditions.push({
-      location: {
-        province: {
-          contains: search,
-        },
-      },
-    });
-    orConditions.push({
-      location: {
-        district: {
-          contains: search,
-        },
-      },
-    });
-    orConditions.push({
-      location: {
-        subDistrict: {
-          contains: search,
-        },
-      },
-    });
-    if (Object.values(ActivityType).includes(search as ActivityType)) {
-      orConditions.push({
-        activityType: search as ActivityType,
-      });
-    }
-    const searchDate = new Date(`${search}T00:00:00`);
-    if (!isNaN(searchDate.getTime())) {
-      const nextDate = new Date(searchDate);
-      nextDate.setDate(nextDate.getDate() + 1);
-      orConditions.push({
-        startDate: {
-          gte: searchDate,
-          lt: nextDate,
-        },
-      });
-      orConditions.push({
-        dueDate: {
-          gte: searchDate,
-          lt: nextDate,
-        },
-      });
-    }
-  }
-  const where = {
+
+  const where: any = {
     isDeleted: false,
+
+    // แสดงเฉพาะกิจกรรมที่สิ้นสุดแล้ว
     dueDate: {
       lt: new Date(),
     },
-    ...(orConditions.length > 0 && {
-      OR: orConditions,
-    }),
   };
+
+  // Search ชื่อกิจกรรม
+  if (query.search?.trim()) {
+    where.name = {
+      contains: query.search.trim(),
+    };
+  }
+
+  // Filter ประเภทกิจกรรม
+  if (query.activityType) {
+    where.activityType = query.activityType;
+  }
+
+  // Filter สถานที่
+  if (
+    query.zone ||
+    query.province ||
+    query.district ||
+    query.subDistrict
+  ) {
+    where.location = {};
+
+    if (query.zone) {
+      where.location.zone = query.zone;
+    }
+
+    if (query.province) {
+      where.location.province = query.province;
+    }
+
+    if (query.district) {
+      where.location.district = query.district;
+    }
+
+    if (query.subDistrict) {
+      where.location.subDistrict = query.subDistrict;
+    }
+  }
+
+  // Filter วันที่เริ่มกิจกรรม
+  if (query.startDate) {
+    const startDate = new Date(`${query.startDate}T00:00:00`);
+    const nextDate = new Date(startDate);
+
+    nextDate.setDate(nextDate.getDate() + 1);
+
+    where.startDate = {
+      gte: startDate,
+      lt: nextDate,
+    };
+  }
+
+  // Filter วันที่สิ้นสุดกิจกรรม
+  if (query.dueDate) {
+    const dueDate = new Date(`${query.dueDate}T00:00:00`);
+    const nextDate = new Date(dueDate);
+
+    nextDate.setDate(nextDate.getDate() + 1);
+
+    where.dueDate = {
+      gte: dueDate,
+      lt: nextDate,
+    };
+  }
+
   const [data, totalCount] = await prisma.$transaction([
     prisma.activity.findMany({
       where,
@@ -2014,11 +2032,14 @@ export async function getActivityHistoryBySuperAdmin(
         dueDate: "desc",
       },
     }),
+
     prisma.activity.count({
       where,
     }),
   ]);
+
   const totalPages = Math.ceil(totalCount / limit);
+
   return {
     data,
     pagination: {
@@ -2038,80 +2059,86 @@ export async function getActivityHistoryBySuperAdmin(
  */
 export async function getActivityHistoryByAdmin(
   userId: number,
-  query: ActivityQueryDto
+  query: PaginationDto
 ): Promise<PaginationResponse<any>> {
-  const page = Number(query.page ?? 1);
-  const limit = Number(query.limit ?? 10);
+  const page = query.page ?? 1;
+  const limit = query.limit ?? 10;
   const skip = (page - 1) * limit;
-  const search = query.search?.trim();
-  const orConditions: any[] = [];
-  if (search) {
-    orConditions.push({
-      name: {
-        contains: search,
-      },
-    });
-    orConditions.push({
-      location: {
-        zone: {
-          contains: search,
-        },
-      },
-    });
-    orConditions.push({
-      location: {
-        province: {
-          contains: search,
-        },
-      },
-    });
-    orConditions.push({
-      location: {
-        district: {
-          contains: search,
-        },
-      },
-    });
-    orConditions.push({
-      location: {
-        subDistrict: {
-          contains: search,
-        },
-      },
-    });
-    if (Object.values(ActivityType).includes(search as ActivityType)) {
-      orConditions.push({
-        activityType: search as ActivityType,
-      });
-    }
-    const searchDate = new Date(`${search}T00:00:00`);
-    if (!isNaN(searchDate.getTime())) {
-      const nextDate = new Date(searchDate);
-      nextDate.setDate(nextDate.getDate() + 1);
-      orConditions.push({
-        startDate: {
-          gte: searchDate,
-          lt: nextDate,
-        },
-      });
-      orConditions.push({
-        dueDate: {
-          gte: searchDate,
-          lt: nextDate,
-        },
-      });
-    }
-  }
-  const where = {
+
+  const where: any = {
     createById: userId,
     isDeleted: false,
+
+    // เฉพาะกิจกรรมที่สิ้นสุดแล้ว
     dueDate: {
       lt: new Date(),
     },
-    ...(orConditions.length > 0 && {
-      OR: orConditions,
-    }),
   };
+
+  // Search ชื่อกิจกรรม
+  if (query.search?.trim()) {
+    where.name = {
+      contains: query.search.trim(),
+    };
+  }
+
+  // Filter ประเภทกิจกรรม
+  if (query.activityType) {
+    where.activityType = query.activityType;
+  }
+
+  // Filter สถานที่
+  if (
+    query.zone ||
+    query.province ||
+    query.district ||
+    query.subDistrict
+  ) {
+    where.location = {};
+
+    if (query.zone) {
+      where.location.zone = query.zone;
+    }
+
+    if (query.province) {
+      where.location.province = query.province;
+    }
+
+    if (query.district) {
+      where.location.district = query.district;
+    }
+
+    if (query.subDistrict) {
+      where.location.subDistrict = query.subDistrict;
+    }
+  }
+
+  // Filter วันที่เริ่มกิจกรรม
+  if (query.startDate) {
+    const startDate = new Date(`${query.startDate}T00:00:00`);
+    const nextDate = new Date(startDate);
+
+    nextDate.setDate(nextDate.getDate() + 1);
+
+    where.startDate = {
+      gte: startDate,
+      lt: nextDate,
+    };
+  }
+
+  // Filter วันที่สิ้นสุดกิจกรรม
+  if (query.dueDate) {
+    const dueDate = new Date(`${query.dueDate}T00:00:00`);
+    const nextDate = new Date(dueDate);
+
+    nextDate.setDate(nextDate.getDate() + 1);
+
+    where.dueDate = {
+      gte: dueDate,
+      lt: nextDate,
+    };
+  }
+
   const [data, totalCount] = await prisma.$transaction([
     prisma.activity.findMany({
       where,
@@ -2139,11 +2166,14 @@ export async function getActivityHistoryByAdmin(
         dueDate: "desc",
       },
     }),
+
     prisma.activity.count({
       where,
     }),
   ]);
+
   const totalPages = Math.ceil(totalCount / limit);
+
   return {
     data,
     pagination: {

@@ -1,14 +1,30 @@
 import { Expose, Transform } from "class-transformer";
-import { IsInt, IsOptional, IsString, Max, Min } from "class-validator";
+import {
+  IsDateString,
+  IsEnum,
+  IsInt,
+  IsOptional,
+  IsString,
+  Max,
+  Min,
+} from "class-validator";
+import { ActivityType } from "@prisma/client";
 
 /**
  * DTO : PaginationDto
- * วัตถุประสงค์ : กำหนด schema สำหรับ pagination parameters
+ * วัตถุประสงค์ : กำหนด schema สำหรับ pagination, search และ filter parameters
+ *
  * Input : query parameters
- *   - page (optional) : หมายเลขหน้าที่ต้องการ (เริ่มจาก 1) default = 1
- *   - limit (optional) : จำนวนรายการต่อหน้า default = 10, max = 100
- *   - search (optional) : คำค้นหา
- * Output : ตรวจสอบความถูกต้องของข้อมูลก่อนเข้าสู่ handler
+ *   - page
+ *   - limit
+ *   - search
+ *   - activityType
+ *   - zone
+ *   - province
+ *   - district
+ *   - subDistrict
+ *   - startDate
+ *   - dueDate
  */
 export class PaginationDto {
   @Expose()
@@ -32,9 +48,65 @@ export class PaginationDto {
   @Max(100, { message: "Limit cannot exceed 100" })
   limit?: number = 10;
 
+  // Search ชื่อกิจกรรม
   @Expose()
   @IsOptional()
+  @IsString()
   search?: string;
+
+  // ประเภทกิจกรรม
+  @Expose()
+  @IsOptional()
+  @IsEnum(ActivityType, {
+    message: "Invalid activity type",
+  })
+  activityType?: ActivityType;
+
+  // ภูมิภาค
+  @Expose()
+  @IsOptional()
+  @IsString()
+  zone?: string;
+
+  // จังหวัด
+  @Expose()
+  @IsOptional()
+  @IsString()
+  province?: string;
+
+  // อำเภอ
+  @Expose()
+  @IsOptional()
+  @IsString()
+  district?: string;
+
+  // ตำบล
+  @Expose()
+  @IsOptional()
+  @IsString()
+  subDistrict?: string;
+
+  // วันที่เริ่มกิจกรรม
+  @Expose()
+  @IsOptional()
+  @IsDateString(
+    {},
+    {
+      message: "Start date must be a valid date",
+    }
+  )
+  startDate?: string;
+
+  // วันที่สิ้นสุดกิจกรรม
+  @Expose()
+  @IsOptional()
+  @IsDateString(
+    {},
+    {
+      message: "Due date must be a valid date",
+    }
+  )
+  dueDate?: string;
 }
 
 /*
