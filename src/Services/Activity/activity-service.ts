@@ -1813,6 +1813,7 @@ export const getHomeActivity = async (
         id: true,
         name: true,
         tagline: true,
+        activityType: true,
         startDate: true,
         dueDate: true,
         price: true,
