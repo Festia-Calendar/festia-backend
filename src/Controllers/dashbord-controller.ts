@@ -1,0 +1,243 @@
+/*
+ * คำอธิบาย :
+ * Controller สำหรับจัดการข้อมูล Dashboard Activity
+ *
+ * Input :
+ * - year : ปีที่ต้องการดูข้อมูล
+ * - month : เดือนที่ต้องการดูข้อมูล
+ * - zone : ภาคที่ต้องการกรองข้อมูล
+ * - province : จังหวัดที่ต้องการกรองข้อมูล
+ *
+ * Output :
+ * ข้อมูล Dashboard Activity สำหรับ Admin และ Super Admin
+ */
+
+import type { Request, Response } from "express";
+import * as DashboardService from "../Services/Dashbord/dashboard-service.js";
+import {
+  createErrorResponse,
+  createResponse,
+} from "../Libs/createResponse.js";
+import type { DashboardActivityQueryDto } from "../Services/Dashbord/dashboard-dto.js";
+
+/*
+ * คำอธิบาย :
+ * ดึงข้อมูล Dashboard Activity สำหรับ Admin
+ *
+ * Input :
+ * - year : ปีที่ต้องการดูข้อมูล
+ * - month : เดือนที่ต้องการดูข้อมูล
+ *
+ * Output :
+ * object ประกอบด้วย
+ * - จำนวนกิจกรรมแยกตามประเภท
+ * - จำนวนกิจกรรมแยกตามเดือน
+ * - 10 อันดับกิจกรรมที่มี viewCount สูงสุด
+ */
+export async function getAdminDashboard(
+  req: Request,
+  res: Response
+) {
+  try {
+    const query = req.query;
+
+    const year = query.year
+      ? Number(query.year)
+      : new Date().getFullYear();
+
+    const month = query.month
+      ? Number(query.month)
+      : undefined;
+
+    /*
+     * ตรวจสอบ year
+     */
+    if (
+      !Number.isInteger(year) ||
+      year < 2000 ||
+      year > 2100
+    ) {
+      return createErrorResponse(
+        res,
+        400,
+        "Invalid year"
+      );
+    }
+
+    /*
+     * ตรวจสอบ month
+     */
+    if (
+      month !== undefined &&
+      (
+        !Number.isInteger(month) ||
+        month < 1 ||
+        month > 12
+      )
+    ) {
+      return createErrorResponse(
+        res,
+        400,
+        "Invalid month"
+      );
+    }
+
+    const dashboardQuery: DashboardActivityQueryDto = {
+      year,
+      month,
+    };
+
+    const result =
+      await DashboardService.getAdminDashboard(
+        dashboardQuery
+      );
+
+    return createResponse(
+      res,
+      200,
+      "Get admin dashboard successfully",
+      result
+    );
+  } catch (error) {
+    console.error(
+      "getAdminDashboard error:",
+      error
+    );
+
+    return createErrorResponse(
+      res,
+      500,
+      "Internal server error"
+    );
+  }
+}
+
+/*
+ * คำอธิบาย :
+ * ดึงข้อมูล Dashboard Activity สำหรับ Super Admin
+ *
+ * Input :
+ * - year : ปีที่ต้องการดูข้อมูล
+ * - month : เดือนที่ต้องการดูข้อมูล
+ * - zone : ภาคที่ต้องการกรองข้อมูล
+ * - province : จังหวัดที่ต้องการกรองข้อมูล
+ *
+ * Output :
+ * object ประกอบด้วย
+ * - จำนวนกิจกรรมแยกตามประเภท
+ * - จำนวนกิจกรรมแยกตามเดือน
+ * - 10 อันดับกิจกรรมที่มี viewCount สูงสุด
+ * - จำนวนกิจกรรมแยกตามภาค
+ * - จำนวนกิจกรรมแยกตามจังหวัด
+ */
+export async function getSuperAdminDashboard(
+  req: Request,
+  res: Response
+) {
+  try {
+    const query = req.query;
+
+    const year = query.year
+      ? Number(query.year)
+      : new Date().getFullYear();
+
+    const month = query.month
+      ? Number(query.month)
+      : undefined;
+
+    const zone =
+      typeof query.zone === "string"
+        ? query.zone.trim()
+        : undefined;
+
+    const province =
+      typeof query.province === "string"
+        ? query.province.trim()
+        : undefined;
+
+    /*
+     * ตรวจสอบ year
+     */
+    if (
+      !Number.isInteger(year) ||
+      year < 2000 ||
+      year > 2100
+    ) {
+      return createErrorResponse(
+        res,
+        400,
+        "Invalid year"
+      );
+    }
+
+    /*
+     * ตรวจสอบ month
+     */
+    if (
+      month !== undefined &&
+      (
+        !Number.isInteger(month) ||
+        month < 1 ||
+        month > 12
+      )
+    ) {
+      return createErrorResponse(
+        res,
+        400,
+        "Invalid month"
+      );
+    }
+
+    /*
+     * ตรวจสอบ zone
+     */
+    if (zone === "") {
+      return createErrorResponse(
+        res,
+        400,
+        "Invalid zone"
+      );
+    }
+
+    /*
+     * ตรวจสอบ province
+     */
+    if (province === "") {
+      return createErrorResponse(
+        res,
+        400,
+        "Invalid province"
+      );
+    }
+
+    const dashboardQuery: DashboardActivityQueryDto = {
+      year,
+      month,
+      zone,
+      province,
+    };
+
+    const result =
+      await DashboardService.getSuperAdminDashboard(
+        dashboardQuery
+      );
+
+    return createResponse(
+      res,
+      200,
+      "Get super admin dashboard successfully",
+      result
+    );
+  } catch (error) {
+    console.error(
+      "getSuperAdminDashboard error:",
+      error
+    );
+
+    return createErrorResponse(
+      res,
+      500,
+      "Internal server error"
+    );
+  }
+}

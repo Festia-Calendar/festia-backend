@@ -1699,6 +1699,17 @@ export const getActivityDetailForHome = async (
       "ไม่พบกิจกรรม"
     );
   }
+  await prisma.activity.update({
+    where: {
+      id,
+    },
+    data: {
+      viewCount: {
+        increment: 1,
+      },
+    },
+  });
+  
   const relatedActivities =
     await prisma.activity.findMany({
       where: {
