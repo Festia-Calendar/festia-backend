@@ -14,8 +14,9 @@
  */
 
 export interface DashboardActivityQueryDto {
-  year?: number;
-  month?: number;
+  startDate?: string;
+  endDate?: string;
   zone?: string;
   province?: string;
+  userId?: number;
 }

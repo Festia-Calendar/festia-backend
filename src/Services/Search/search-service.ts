@@ -36,6 +36,7 @@ export const searchActivities = async ({
 
   const where: Prisma.ActivityWhereInput = {
     statusActivity: "PUBLISH",
+    statusApprove: "APPROVE",
     isDeleted: false,
   };
 

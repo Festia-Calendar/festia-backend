@@ -1,3 +1,7 @@
+/*
+ * คำอธิบาย :
+ * Service สำหรับสร้างและดึงข้อมูล Dashboard Activity
+ */
 import prisma from "../database-service.js";
 import type { DashboardActivityQueryDto } from "../Dashbord/dashboard-dto.js";
 
@@ -11,47 +15,36 @@ import type { DashboardActivityQueryDto } from "../Dashbord/dashboard-dto.js";
  * Output :
  * เงื่อนไขสำหรับค้นหาข้อมูล Activity
  */
-function buildActivityWhere(
-  query: DashboardActivityQueryDto
-) {
+function buildActivityWhere(query: DashboardActivityQueryDto) {
   const where: any = {
     statusActivity: "PUBLISH",
     isDeleted: false,
   };
 
+  if (query.userId) {
+    where.createById = query.userId;
+  }
+
   /*
-   * กรองตามปี
+   * กรองตามช่วงเวลา startDate ถึง endDate
    */
-  if (query.year) {
-    const startDate = new Date(query.year, 0, 1);
-    const endDate = new Date(query.year + 1, 0, 1);
-
+  if (query.startDate && query.endDate) {
+    const start = new Date(`${query.startDate}T00:00:00`);
+    const end = new Date(`${query.endDate}T23:59:59`);
     where.startDate = {
-      gte: startDate,
-      lt: endDate,
+      gte: start,
+      lte: end,
     };
-
-    /*
-     * กรองตามเดือน
-     */
-    if (query.month) {
-      const monthStart = new Date(
-        query.year,
-        query.month - 1,
-        1
-      );
-
-      const monthEnd = new Date(
-        query.year,
-        query.month,
-        1
-      );
-
-      where.startDate = {
-        gte: monthStart,
-        lt: monthEnd,
-      };
-    }
+  } else if (query.startDate) {
+    const start = new Date(`${query.startDate}T00:00:00`);
+    where.startDate = {
+      gte: start,
+    };
+  } else if (query.endDate) {
+    const end = new Date(`${query.endDate}T23:59:59`);
+    where.startDate = {
+      lte: end,
+    };
   }
 
   /*
@@ -82,9 +75,7 @@ function buildActivityWhere(
  * Output :
  * จำนวนกิจกรรมแยกตามประเภท
  */
-export async function getActivityByType(
-  query: DashboardActivityQueryDto
-) {
+export async function getActivityByType(query: DashboardActivityQueryDto) {
   const where = buildActivityWhere(query);
 
   const result = await prisma.activity.groupBy({
@@ -116,43 +107,8 @@ export async function getActivityByType(
  * Output :
  * จำนวนกิจกรรมของแต่ละเดือน
  */
-export async function getActivityByMonth(
-  query: DashboardActivityQueryDto
-) {
-  const year =
-    query.year ?? new Date().getFullYear();
-
-  /*
-   * ถ้ามีการเลือกเดือน
-   * แสดงเฉพาะข้อมูลของเดือนนั้น
-   */
-  if (query.month) {
-    const where = buildActivityWhere({
-      ...query,
-      year,
-    });
-
-    const count = await prisma.activity.count({
-      where,
-    });
-
-    return [
-      {
-        month: query.month,
-        count,
-      },
-    ];
-  }
-
-  /*
-   * ถ้าไม่ได้เลือกเดือน
-   * แสดงข้อมูลครบทั้ง 12 เดือน
-   */
-  const where = buildActivityWhere({
-    ...query,
-    year,
-    month: undefined,
-  });
+export async function getActivityByMonth(query: DashboardActivityQueryDto) {
+  const where = buildActivityWhere(query);
 
   const activities = await prisma.activity.findMany({
     where,
@@ -174,9 +130,7 @@ export async function getActivityByMonth(
       continue;
     }
 
-    const month =
-      activity.startDate.getMonth();
-
+    const month = activity.startDate.getMonth();
     monthlyCount[month].count += 1;
   }
 
@@ -193,9 +147,7 @@ export async function getActivityByMonth(
  * Output :
  * 10 อันดับกิจกรรมที่มี viewCount สูงสุด
  */
-export async function getTop10Activities(
-  query: DashboardActivityQueryDto
-) {
+export async function getTop10Activities(query: DashboardActivityQueryDto) {
   const where = buildActivityWhere(query);
 
   return await prisma.activity.findMany({
@@ -231,16 +183,10 @@ export async function getTop10Activities(
  * Output :
  * จำนวนกิจกรรมแยกตามภาค
  */
-export async function getActivityByZone(
-  query: DashboardActivityQueryDto
-) {
-  /*
-   * ไม่ใช้ zone ในการกรอง
-   * เนื่องจากต้องการแสดงจำนวนของแต่ละภาค
-   */
+export async function getActivityByZone(query: DashboardActivityQueryDto) {
   const where = buildActivityWhere({
     ...query,
-    zone: undefined,
+    zone: undefined, // ไม่ใช้ zone ในการกรองตัวเอง
   });
 
   const activities = await prisma.activity.findMany({
@@ -254,10 +200,7 @@ export async function getActivityByZone(
     },
   });
 
-  const zoneMap = new Map<
-    string,
-    number
-  >();
+  const zoneMap = new Map<string, number>();
 
   for (const activity of activities) {
     const zone = activity.location?.zone;
@@ -266,18 +209,13 @@ export async function getActivityByZone(
       continue;
     }
 
-    zoneMap.set(
-      zone,
-      (zoneMap.get(zone) ?? 0) + 1
-    );
+    zoneMap.set(zone, (zoneMap.get(zone) ?? 0) + 1);
   }
 
-  return Array.from(zoneMap.entries()).map(
-    ([zone, count]) => ({
-      zone,
-      count,
-    })
-  );
+  return Array.from(zoneMap.entries()).map(([zone, count]) => ({
+    zone,
+    count,
+  }));
 }
 
 /*
@@ -290,18 +228,13 @@ export async function getActivityByZone(
  * Output :
  * จำนวนกิจกรรมแยกตามจังหวัด
  */
-export async function getActivityByProvince(
-  query: DashboardActivityQueryDto
-) {
-  /*
-   * ถ้าเลือกภาค
-   * จะแสดงเฉพาะจังหวัดภายในภาคนั้น
-   */
+export async function getActivityByProvince(query: DashboardActivityQueryDto) {
   const where = buildActivityWhere(query);
 
   const activities = await prisma.activity.findMany({
     where,
     select: {
+      viewCount: true, // ดึงยอดวิวมาด้วย
       location: {
         select: {
           province: true,
@@ -310,31 +243,31 @@ export async function getActivityByProvince(
     },
   });
 
-  const provinceMap = new Map<
-    string,
-    number
-  >();
+  // ใช้ Map เก็บข้อมูล { count: จำนวนกิจกรรม, views: ยอดวิวรวม }
+  const provinceMap = new Map<string, { count: number; views: number }>();
 
   for (const activity of activities) {
-    const province =
-      activity.location?.province;
+    const province = activity.location?.province;
 
     if (!province) {
       continue;
     }
 
-    provinceMap.set(
-      province,
-      (provinceMap.get(province) ?? 0) + 1
-    );
+    const currentData = provinceMap.get(province) || { count: 0, views: 0 };
+    provinceMap.set(province, {
+      count: currentData.count + 1,
+      views: currentData.views + (activity.viewCount || 0),
+    });
   }
 
-  return Array.from(
-    provinceMap.entries()
-  ).map(([province, count]) => ({
-    province,
-    count,
-  }));
+  // แปลง Map เป็น Array แล้วเรียงลำดับจากกิจกรรมเยอะสุดไปน้อยสุด
+  return Array.from(provinceMap.entries())
+    .map(([province, data]) => ({
+      province,
+      count: data.count,
+      viewCount: data.views,
+    }))
+    .sort((a, b) => b.count - a.count);
 }
 
 /*
@@ -350,17 +283,17 @@ export async function getActivityByProvince(
  * - จำนวนกิจกรรมแยกตามเดือน
  * - 10 อันดับกิจกรรมที่มี viewCount สูงสุด
  */
-export async function getAdminDashboard(
-  query: DashboardActivityQueryDto
-) {
+export async function getAdminDashboard(query: DashboardActivityQueryDto) {
   const [
     activityByType,
     activityByMonth,
     popularActivities,
+    activityByProvince,
   ] = await Promise.all([
     getActivityByType(query),
     getActivityByMonth(query),
     getTop10Activities(query),
+    getActivityByProvince(query),
   ]);
 
   return {
@@ -368,6 +301,7 @@ export async function getAdminDashboard(
     activityByType,
     activityByMonth,
     popularActivities,
+    activityByProvince,
   };
 }
 
@@ -386,9 +320,7 @@ export async function getAdminDashboard(
  * - จำนวนกิจกรรมแยกตามภาค
  * - จำนวนกิจกรรมแยกตามจังหวัด
  */
-export async function getSuperAdminDashboard(
-  query: DashboardActivityQueryDto
-) {
+export async function getSuperAdminDashboard(query: DashboardActivityQueryDto) {
   const [
     activityByType,
     activityByMonth,

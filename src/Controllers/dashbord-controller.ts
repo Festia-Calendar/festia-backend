@@ -41,56 +41,41 @@ export async function getAdminDashboard(
   try {
     const query = req.query;
 
-    const year = query.year
-      ? Number(query.year)
-      : new Date().getFullYear();
-
-    const month = query.month
-      ? Number(query.month)
-      : undefined;
+    const startDate = typeof query.startDate === "string" ? query.startDate.trim() : undefined;
+    const endDate = typeof query.endDate === "string" ? query.endDate.trim() : undefined;
+    const zone = typeof query.zone === "string" ? query.zone.trim() : undefined;
+    const province = typeof query.province === "string" ? query.province.trim() : undefined;
 
     /*
-     * ตรวจสอบ year
+     * ตรวจสอบ zone
      */
-    if (
-      !Number.isInteger(year) ||
-      year < 2000 ||
-      year > 2100
-    ) {
-      return createErrorResponse(
-        res,
-        400,
-        "Invalid year"
-      );
+    if (zone === "") {
+      return createErrorResponse(res, 400, "Invalid zone");
     }
 
     /*
-     * ตรวจสอบ month
+     * ตรวจสอบ province
      */
-    if (
-      month !== undefined &&
-      (
-        !Number.isInteger(month) ||
-        month < 1 ||
-        month > 12
-      )
-    ) {
-      return createErrorResponse(
-        res,
-        400,
-        "Invalid month"
-      );
+    if (province === "") {
+      return createErrorResponse(res, 400, "Invalid province");
+    }
+
+    // ดึง ID ของ Admin ที่ล็อกอินมาจาก Token
+    const currentUserId = (req as any).user?.id || (req as any).userId; 
+
+    if (!currentUserId) {
+        return createErrorResponse(res, 401, "Unauthorized: ไม่พบข้อมูลผู้ใช้งาน");
     }
 
     const dashboardQuery: DashboardActivityQueryDto = {
-      year,
-      month,
+      startDate,
+      endDate,
+      zone,
+      province,
+      userId: Number(currentUserId),
     };
 
-    const result =
-      await DashboardService.getAdminDashboard(
-        dashboardQuery
-      );
+    const result = await DashboardService.getAdminDashboard(dashboardQuery);
 
     return createResponse(
       res,
@@ -99,10 +84,7 @@ export async function getAdminDashboard(
       result
     );
   } catch (error) {
-    console.error(
-      "getAdminDashboard error:",
-      error
-    );
+    console.error("getAdminDashboard error:", error);
 
     return createErrorResponse(
       res,
@@ -130,6 +112,10 @@ export async function getAdminDashboard(
  * - จำนวนกิจกรรมแยกตามภาค
  * - จำนวนกิจกรรมแยกตามจังหวัด
  */
+/*
+ * คำอธิบาย :
+ * ดึงข้อมูล Dashboard Activity สำหรับ Super Admin
+ */
 export async function getSuperAdminDashboard(
   req: Request,
   res: Response
@@ -137,90 +123,33 @@ export async function getSuperAdminDashboard(
   try {
     const query = req.query;
 
-    const year = query.year
-      ? Number(query.year)
-      : new Date().getFullYear();
-
-    const month = query.month
-      ? Number(query.month)
-      : undefined;
-
-    const zone =
-      typeof query.zone === "string"
-        ? query.zone.trim()
-        : undefined;
-
-    const province =
-      typeof query.province === "string"
-        ? query.province.trim()
-        : undefined;
-
-    /*
-     * ตรวจสอบ year
-     */
-    if (
-      !Number.isInteger(year) ||
-      year < 2000 ||
-      year > 2100
-    ) {
-      return createErrorResponse(
-        res,
-        400,
-        "Invalid year"
-      );
-    }
-
-    /*
-     * ตรวจสอบ month
-     */
-    if (
-      month !== undefined &&
-      (
-        !Number.isInteger(month) ||
-        month < 1 ||
-        month > 12
-      )
-    ) {
-      return createErrorResponse(
-        res,
-        400,
-        "Invalid month"
-      );
-    }
+    const startDate = typeof query.startDate === "string" ? query.startDate.trim() : undefined;
+    const endDate = typeof query.endDate === "string" ? query.endDate.trim() : undefined;
+    const zone = typeof query.zone === "string" ? query.zone.trim() : undefined;
+    const province = typeof query.province === "string" ? query.province.trim() : undefined;
 
     /*
      * ตรวจสอบ zone
      */
     if (zone === "") {
-      return createErrorResponse(
-        res,
-        400,
-        "Invalid zone"
-      );
+      return createErrorResponse(res, 400, "Invalid zone");
     }
 
     /*
      * ตรวจสอบ province
      */
     if (province === "") {
-      return createErrorResponse(
-        res,
-        400,
-        "Invalid province"
-      );
+      return createErrorResponse(res, 400, "Invalid province");
     }
 
     const dashboardQuery: DashboardActivityQueryDto = {
-      year,
-      month,
+      startDate,
+      endDate,
       zone,
       province,
     };
 
-    const result =
-      await DashboardService.getSuperAdminDashboard(
-        dashboardQuery
-      );
+    const result = await DashboardService.getSuperAdminDashboard(dashboardQuery);
 
     return createResponse(
       res,
@@ -229,15 +158,7 @@ export async function getSuperAdminDashboard(
       result
     );
   } catch (error) {
-    console.error(
-      "getSuperAdminDashboard error:",
-      error
-    );
-
-    return createErrorResponse(
-      res,
-      500,
-      "Internal server error"
-    );
+    console.error("getSuperAdminDashboard error:", error);
+    return createErrorResponse(res, 500, "Internal server error");
   }
 }

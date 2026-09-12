@@ -190,8 +190,8 @@ export const getActivityByAdmin = async (
   userId: number,
   query: PaginationDto
 ): Promise<PaginationResponse<any>> => {
-  const page = query.page ?? 1;
-  const limit = query.limit ?? 10;
+  const page = Number(query.page) || 1;
+  const limit = Number(query.limit) || 10;
   const skip = (page - 1) * limit;
 
   const where: any = {
@@ -1443,8 +1443,8 @@ export const rejectActivityBySuperAdmin = async (
 export const getRequestsActivitiesForSuperAdmin = async (
   query: PaginationDto
 ): Promise<PaginationResponse<any>> => {
-  const page = query.page ?? 1;
-  const limit = query.limit ?? 10;
+  const page = Number(query.page) || 1;
+  const limit = Number(query.limit) || 10;
   const skip = (page - 1) * limit;
 
   const where: any = {
@@ -1940,8 +1940,8 @@ export const deleteDraftActivityByAdmin = async (
 export async function getActivityHistoryBySuperAdmin(
   query: PaginationDto
 ): Promise<PaginationResponse<any>> {
-  const page = query.page ?? 1;
-  const limit = query.limit ?? 10;
+  const page = Number(query.page) || 1;
+  const limit = Number(query.limit) || 10;
   const skip = (page - 1) * limit;
 
   const where: any = {
@@ -2073,8 +2073,8 @@ export async function getActivityHistoryByAdmin(
   userId: number,
   query: PaginationDto
 ): Promise<PaginationResponse<any>> {
-  const page = query.page ?? 1;
-  const limit = query.limit ?? 10;
+  const page = Number(query.page) || 1;
+  const limit = Number(query.limit) || 10;
   const skip = (page - 1) * limit;
 
   const where: any = {

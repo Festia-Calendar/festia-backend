@@ -545,18 +545,22 @@ export async function rejectActivityBySuperAdmin(
  * Input : req.query - page, limit, search
  * Output : 200 - รายการกิจกรรม Pending พร้อม Pagination
  */
+/**
+ * คำอธิบาย : SuperAdmin ดึงรายการกิจกรรมที่รออนุมัติ
+ * Input : req.query - Pagination และ Filters ทั้งหมด
+ * Output : 200 - รายการกิจกรรม Pending พร้อม Pagination
+ */
 export async function getRequestsActivitiesForSuperAdmin(
   req: Request,
   res: Response
 ) {
   try {
-    const query = req.query as unknown as ActivityRequestQueryDto;
-    const result =
-      await ActivityService.getRequestsActivitiesForSuperAdmin({
-        page: query.page ? Number(query.page) : 1,
-        limit: query.limit ? Number(query.limit) : 10,
-        search: query.search,
-      });
+    // รับ Query ทั้งหมดเข้ามาเหมือนกับฟังก์ชัน getActivityBySuperAdmin
+    const query: PaginationDto = req.query as unknown as PaginationDto;
+    
+    // โยน query ทั้งก้อนเข้าไปใน Service เพื่อให้ Filter ทำงานได้ครบ
+    const result = await ActivityService.getRequestsActivitiesForSuperAdmin(query);
+    
     return createResponse(
       res,
       200,
