@@ -46,21 +46,14 @@ export async function getAdminDashboard(
     const zone = typeof query.zone === "string" ? query.zone.trim() : undefined;
     const province = typeof query.province === "string" ? query.province.trim() : undefined;
 
-    /*
-     * ตรวจสอบ zone
-     */
     if (zone === "") {
       return createErrorResponse(res, 400, "Invalid zone");
     }
 
-    /*
-     * ตรวจสอบ province
-     */
     if (province === "") {
       return createErrorResponse(res, 400, "Invalid province");
     }
 
-    // ดึง ID ของ Admin ที่ล็อกอินมาจาก Token
     const currentUserId = (req as any).user?.id || (req as any).userId; 
 
     if (!currentUserId) {
@@ -128,16 +121,10 @@ export async function getSuperAdminDashboard(
     const zone = typeof query.zone === "string" ? query.zone.trim() : undefined;
     const province = typeof query.province === "string" ? query.province.trim() : undefined;
 
-    /*
-     * ตรวจสอบ zone
-     */
     if (zone === "") {
       return createErrorResponse(res, 400, "Invalid zone");
     }
 
-    /*
-     * ตรวจสอบ province
-     */
     if (province === "") {
       return createErrorResponse(res, 400, "Invalid province");
     }

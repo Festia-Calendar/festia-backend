@@ -57,10 +57,6 @@ export const search: TypedHandlerFromDto<
   typeof searchDto
 > = async (req, res) => {
   try {
-    // =====================================================
-    // รับค่าจาก Query
-    // =====================================================
-
     const keyword =
       req.query.keyword as string | undefined;
 
@@ -84,10 +80,6 @@ export const search: TypedHandlerFromDto<
 
     const page =
       (req.query.page as number | undefined) ?? 1;
-
-    // =====================================================
-    // ตรวจสอบช่วงวันที่
-    // =====================================================
 
     if (startDate && endDate) {
       const start = new Date(startDate);
@@ -118,10 +110,6 @@ export const search: TypedHandlerFromDto<
       }
     }
 
-    // =====================================================
-    // Search Service
-    // =====================================================
-
     const result =
       await SearchService.searchActivities({
         keyword,
@@ -133,10 +121,6 @@ export const search: TypedHandlerFromDto<
         type,
         page,
       });
-
-    // =====================================================
-    // Response
-    // =====================================================
 
     return createResponse(
       res,
