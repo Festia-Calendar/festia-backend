@@ -24,4 +24,4 @@ ENV NODE_ENV=production
 RUN npx prisma generate
 RUN npm run build
 RUN npx tsc-alias 
-CMD ["node", "dist/src/server.js"]
+CMD ["node", "dist/server.js"]
