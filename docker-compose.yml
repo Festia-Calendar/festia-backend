@@ -48,6 +48,7 @@ services:
       # use container port 3306 here as well
       DATABASE_URL: ${DATABASE_URL:-mysql://${DB_USER:-festia}:${DB_PASSWORD:-festia}@db:3306/${DB_NAME:-festia_data}}
       PORT: ${PORT:-3000} # app listens on 3000 inside container
+      FRONTEND_URL: ${FRONTEND_URL}
     ports:
       - "${BACKEND_PORT:-3000}:3000" # host port parameterized
     depends_on:
