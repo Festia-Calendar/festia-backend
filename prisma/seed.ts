@@ -17,16 +17,16 @@ const prisma = new PrismaClient();
 // =========================================================
 
 const DEFAULT_ACTIVITY_COVER =
-  "/uploads/activity/default-cover.jpg";
+  "/uploads/default-cover.jpg";
 
 const DEFAULT_ACTIVITY_GALLERY =
-  "/uploads/activity/default-gallery.jpg";
+  "/uploads/default-gallery.jpg";
 
 const DEFAULT_ACTIVITY_VIDEO =
-  "/uploads/activity/default-video.mp4";
+  "/uploads/default-video.mp4";
 
 const DEFAULT_SCHEDULE_IMAGE =
-  "/uploads/schedule/default-schedule.jpg";
+  "/uploads/default-schedule.jpg";
 
 // =========================================================
 // RANDOM
@@ -871,13 +871,13 @@ async function createBanners() {
   await prisma.banner.createMany({
     data: [
       {
-        image: "/uploads/banner/banner-1.jpg",
+        image: "/uploads/banner1.jpg",
       },
       {
-        image: "/uploads/banner/banner-2.jpg",
+        image: "/uploads/banner2.jpg",
       },
       {
-        image: "/uploads/banner/banner-3.jpg",
+        image: "/uploads/banner3.jpg",
       },
     ],
   });
