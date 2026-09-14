@@ -5,6 +5,7 @@ import { homeRoutes } from "./home-route.js";
 import { bannerRoutes } from "./banner-route.js";
 import { searchRoutes } from "./search-routes.js";
 import { dashboardRoutes } from "./dashboard-routes.js";
+import configRoutes from "./config-route.js";
 
 const rootRouter: Router = Router();
 
@@ -14,5 +15,6 @@ rootRouter.use(homeRoutes);
 rootRouter.use(bannerRoutes);
 rootRouter.use(searchRoutes);
 rootRouter.use(dashboardRoutes);
+rootRouter.use(configRoutes);
 
 export default rootRouter;

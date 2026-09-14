@@ -20,6 +20,7 @@ const JWT_SECRET = process.env.JWT_SECRET || "dev-secret";
 export interface LoginData {
   id: number;
   username: string;
+  email: string;
   role: string;
 }
 /*

@@ -1,0 +1,69 @@
+networks:
+  default:
+    name: festia-net
+
+volumes:
+  db_data: {}
+
+services:
+  db:
+    container_name: festia_db_${ENV_SUFFIX:-dev}
+    build:
+      context: ../festia-backend/prisma
+      dockerfile: Dockerfile
+    ports:
+      - "${DB_PORT:-4336}:3306" # host port parameterized
+    environment:
+      MYSQL_DATABASE: ${DB_NAME:-festia_data}
+      MYSQL_USER: ${DB_USER:-festia}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-festia}
+      MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+    volumes:
+      - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:latest
+    container_name: phpmyadmin_${ENV_SUFFIX:-dev}
+    environment:
+      PMA_HOST: db # or festia_db (service/container name)
+      PMA_PORT: "3306" # use container port, not host port
+    ports:
+      - "${PHPMYADMIN_PORT:-4880}:80" # host port parameterized
+    depends_on:
+      - db
+    restart: unless-stopped
+
+  backend:
+    container_name: festia-backend_${ENV_SUFFIX:-dev}
+    build:
+      context: ../festia-backend
+      dockerfile: Dockerfile
+    environment:
+      # use container port 3306 here as well
+      DATABASE_URL: ${DATABASE_URL:-mysql://${DB_USER:-festia}:${DB_PASSWORD:-festia}@db:3306/${DB_NAME:-festia_data}}
+      PORT: ${PORT:-3000} # app listens on 3000 inside container
+    ports:
+      - "${BACKEND_PORT:-3000}:3000" # host port parameterized
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  frontend:
+    container_name: festia-frontend_${ENV_SUFFIX:-dev}
+    build:
+      context: ../festia-frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:${BACKEND_PORT:-3000}/api}
+    ports:
+      - "${FRONTEND_PORT:-4000}:80" # host port parameterized
+    depends_on:
+      - backend
+    restart: unless-stopped
