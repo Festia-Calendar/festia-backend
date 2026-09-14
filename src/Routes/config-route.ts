@@ -9,18 +9,18 @@ import {
 const configRoutes = Router();
 
 // GET /server-status - ดูสถานะการทำงานของเซิร์ฟเวอร์
-configRoutes.get("/shared/server-status", getServerStatus);
+configRoutes.get("/server-status", getServerStatus);
 
 // POST /super/server/enable - เปิดเซิร์ฟเวอร์
-configRoutes.post("/super/server/enable",
+configRoutes.post("/superadmin/server/enable",
     authMiddleware,
-    allowRoles("superadmin"),
+    allowRoles("SUPERADMIN"),
     enableServer);
 
 // POST /super/server/disable - ปิดเซิร์ฟเวอร์
-configRoutes.post("/super/server/disable",
+configRoutes.post("/superadmin/server/disable",
     authMiddleware,
-    allowRoles("superadmin"),
+    allowRoles("SUPERADMIN"),
     disableServer);
 
 export default configRoutes;
