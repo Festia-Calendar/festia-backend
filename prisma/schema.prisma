@@ -1,197 +1,252 @@
-generator client {
-  provider = "prisma-client-js"
-}
+  generator client {
+    provider = "prisma-client-js"
+  }
 
-datasource db {
-  provider = "mysql"
-  url      = env("DATABASE_URL")
-}
+  datasource db {
+    provider = "mysql"
+    url      = env("DATABASE_URL")
+  }
 
-/**
- * คำอธิบาย : สถานะการเผยแพร่กิจกรรม
- * Input : DRAFT, PUBLISHED, ARCHIVED
- * Output : ควบคุมการแสดงผลของ Activity
- */
-enum ActivityPublishStatus {
-  PUBLISH
-  UNPUBLISH
-  DRAFT
-}
+  /**
+  * คำอธิบาย : ประเภทของรูปภาพ/ไฟล์ที่ระบบรองรับ
+  * Input : ค่า enum (COVER, GALLERY, VIDEO, LOGO)
+  * Output : การกำหนดประเภทไฟล์ในตารางที่เกี่ยวข้อง
+  */
+  enum ImageType {
+    COVER
+    GALLERY
+    VIDEO
+    LOGO
+  }
 
-/**
- * คำอธิบาย : สถานะการอนุมัติกิจกรรม
- * Input : PENDING, APPROVED, REJECTED
- * Output : ใช้ตรวจสอบผลการอนุมัติ
- */
-enum ActivityApproveStatus {
-  PENDING
-  APPROVE
-  REJECTED
-}
+  /**
+  * คำอธิบาย : สถานะการเผยแพร่กิจกรรม
+  * Input : DRAFT, PUBLISHED, ARCHIVED
+  * Output : ควบคุมการแสดงผลของ Activity
+  */
+  enum ActivityPublishStatus {
+    PUBLISH
+    UNPUBLISH
+    DRAFT
+  }
 
-/**
- * คำอธิบาย : เก็บข้อมูลเพศของ User
- * Input : FEMALE, MALE, NONE
- * Output : เพศของผู้ใช้งาน
- */
-enum Gender {
-  FEMALE
-  MALE
-  NONE
-}
+  /**
+  * คำอธิบาย : สถานะการอนุมัติกิจกรรม
+  * Input : PENDING, APPROVED, REJECTED
+  * Output : ใช้ตรวจสอบผลการอนุมัติ
+  */
+  enum ActivityApproveStatus {
+    PENDING
+    APPROVE
+    REJECTED
+  }
 
-/**
- * คำอธิบาย : เก็บสถานะ User
- * Input : ACTIVE, BLOCKED
- * Output : สถานะการใช้งานบัญชี
- */
-enum UserStatus {
-  ACTIVE
-  BLOCKED
-}
+  /**
+  * คำอธิบาย : เก็บข้อมูลเพศของ User
+  * Input : FEMALE, MALE, NONE
+  * Output : เพศของผู้ใช้งาน
+  */
+  enum Gender {
+    FEMALE
+    MALE
+    NONE
+  }
 
-/**
- * คำอธิบาย : เก็บสถานะ ประเภทของกิจกรรม
- * Input : CULTURAL_FESTIVAL, EXHIBITION_ART, PERFORMANCE_MUSIC, FOOD_DRINK_FESTIVAL, MARKET_FAIR, TRAINING_SEMINAR, SPORT_RECREATION, COMMUNITY_TOURISM
- * Output : ประเภทของกิจกรรม
- */
-enum ActivityType {
-  CULTURAL_FESTIVAL       // เทศกาลประเพณีและวัฒนธรรม
-  EXHIBITION_ART          // นิทรรศการและศิลปะ
-  PERFORMANCE_MUSIC       // การแสดง ดนตรี และความบันเทิง
-  FOOD_DRINK_FESTIVAL     // เทศกาลอาหารและเครื่องดื่ม
-  MARKET_FAIR             // ตลาดนัดช้อปปิ้ง และงานแฟร์
-  TRAINING_SEMINAR        // การอบรมและเสวนา
-  SPORT_RECREATION        // กีฬา นันทนาการ
-  COMMUNITY_TOURISM       // ท่องเที่ยวชุมชน
-}
+  /**
+  * คำอธิบาย : เก็บสถานะ User
+  * Input : ACTIVE, BLOCKED
+  * Output : สถานะการใช้งานบัญชี
+  */
+  enum UserStatus {
+    ACTIVE
+    BLOCKED
+  }
 
-/**
- * คำอธิบาย : เก็บข้อมูล user
- * Input : roleId, username, email, password, profile
- * Output : ผู้ใช้งานระบบ
- */
-model User {
-  id        Int        @id @default(autoincrement()) @map("us_id")
-  roleId    Int        @map("us_role_id")
-  username  String     @unique @map("us_username") @db.VarChar(50)
-  email     String     @unique @map("us_email") @db.VarChar(65)
-  password  String     @map("us_password") @db.VarChar(255)
-  fname     String     @map("us_fname") @db.VarChar(100)
-  lname     String     @map("us_lname") @db.VarChar(100)
-  phone     String     @unique @map("us_phone") @db.VarChar(10)
-  gender    Gender?    @map("us_gender")
-  status    UserStatus @default(ACTIVE) @map("us_status")
-  isDeleted Boolean    @default(false) @map("us_is_deleted")
-  deleteAt  DateTime?  @map("us_delete_at") @db.Timestamp(0)
+  /**
+  * คำอธิบาย : เก็บสถานะ ประเภทของกิจกรรม
+  * Input : CULTURAL_FESTIVAL, EXHIBITION_ART, PERFORMANCE_MUSIC, FOOD_DRINK_FESTIVAL, MARKET_FAIR, TRAINING_SEMINAR, SPORT_RECREATION, COMMUNITY_TOURISM
+  * Output : ประเภทของกิจกรรม
+  */
+  enum ActivityType {
+    CULTURAL_FESTIVAL       // เทศกาลประเพณีและวัฒนธรรม
+    EXHIBITION_ART          // นิทรรศการและศิลปะ
+    PERFORMANCE_MUSIC       // การแสดง ดนตรี และความบันเทิง
+    FOOD_DRINK_FESTIVAL     // เทศกาลอาหารและเครื่องดื่ม
+    MARKET_FAIR             // ตลาดนัดช้อปปิ้ง และงานแฟร์
+    TRAINING_SEMINAR        // การอบรมและเสวนา
+    SPORT_RECREATION        // กีฬา นันทนาการ
+    COMMUNITY_TOURISM       // ท่องเที่ยวชุมชน
+  }
 
-  // Relations
-  role              Role       @relation(fields: [roleId], references: [id])
-  createdActivities Activity[] @relation("CreatedActivity")
-  updatedActivities Activity[] @relation("UpdatedActivity")
+  /**
+  * คำอธิบาย : ตารางเก็บ banner ที่แสดงในหน้าเว็บ
+  * Input : path ของรูป
+  * Output : banner สำหรับหน้าเว็บ
+  */
+  model Banner {
+    id    Int    @id @default(autoincrement()) @map("bn_id")
+    image String @map("bn_image") @db.VarChar(256)
 
-  @@index([roleId])
-  @@map("users")
-}
+    @@map("banners")
+  }
 
-/**
- * คำอธิบาย : เก็บ role ของระบบ
- * Input : SUPERADMIN ADMIN
- * Output : กำหนดสิทธิ์ผู้ใช้งาน
- */
-model Role {
-  id   Int    @id @default(autoincrement()) @map("re_id")
-  name String @unique @map("re_name") @db.VarChar(45)
+  /**
+  * คำอธิบาย : เก็บไฟล์ของ activity
+  * Input : activityId, path, type
+  * Output : ไฟล์รูป/วิดีโอประกอบ activity
+  */
+  model ActivityFile {
+    id        Int       @id @default(autoincrement()) @map("pf_id")
+    activityId Int       @map("pf_activity_id")
+    filePath  String    @map("pf_image") @db.VarChar(256)
+    type      ImageType @map("pf_type")
 
-  // Relations
-  users User[]
+    activity Activity @relation(fields: [activityId], references: [id])
 
-  @@map("roles")
-}
+    @@index([activityId])
+    @@map("activity_files")
+  }
 
-/**
- * คำอธิบาย : เก็บข้อมูล activity
- * Input : locationId, createById, name, price, status
- * Output : activity
- */
-model Activity {
-  id             Int                    @id @default(autoincrement()) @map("pk_id")
-  locationId     Int?                   @map("pk_location_id")
-  createById     Int                    @map("pk_create_by")
-  name           String?                @map("pk_name") @db.VarChar(100)
-  tagline        String?                @map("pk_tagline") @db.VarChar(500)
-  description    String?                @map("pk_description") @db.VarChar(500)
-  activityType   ActivityType?          @map("pk_activity_type")
-  phone          String?                @map("pk_phone") @db.VarChar(20)
-  lineUrl        String?                @map("pk_line_url") @db.VarChar(255)
-  facebookUrl    String?                @map("pk_facebook_url") @db.VarChar(255)
-  price          Decimal?               @map("pk_price") @db.Decimal(10, 2)
-  statusActivity ActivityPublishStatus  @map("pk_status_activity")
-  statusApprove  ActivityApproveStatus? @map("pk_status_approve")
-  startDate      DateTime?              @map("pk_start_date") @db.DateTime
-  dueDate        DateTime?              @map("pk_due_date") @db.DateTime
-  schedules      ActivitySchedule[]
-  rejectReason   String?                @map("pk_reject_reason") @db.VarChar(100)
-  createdAt      DateTime               @default(now()) @map("pk_created_at") @db.Timestamp(0)
-  updatedById    Int?                   @map("pk_updated_by")
-  updatedAt      DateTime               @updatedAt @map("pk_updated_at") @db.DateTime(0)
-  isDeleted      Boolean                @default(false) @map("pk_is_deleted")
-  deleteAt       DateTime?              @map("pk_delete_at") @db.Timestamp(0)
-  viewCount      Int                    @default(0) @map("pk_view_count")
+  model ActivityScheduleFile {
+    id          Int    @id @default(autoincrement())
+    scheduleId  Int
+    filePath    String @db.VarChar(256)
+    type        ImageType
 
-  // Relations
-  location  Location? @relation(fields: [locationId], references: [id])
-  createdBy User      @relation("CreatedActivity", fields: [createById], references: [id])
-  updatedBy User?     @relation("UpdatedActivity", fields: [updatedById], references: [id])
+    schedule ActivitySchedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
 
-  @@index([locationId])
-  @@index([createById])
-  @@index([updatedById])
-  @@map("activities")
-}
+    @@index([scheduleId])
+  }
 
+  /**
+  * คำอธิบาย : เก็บข้อมูล user
+  * Input : roleId, username, email, password, profile
+  * Output : ผู้ใช้งานระบบ
+  */
+  model User {
+    id        Int        @id @default(autoincrement()) @map("us_id")
+    roleId    Int        @map("us_role_id")
+    username  String     @unique @map("us_username") @db.VarChar(50)
+    email     String     @unique @map("us_email") @db.VarChar(65)
+    password  String     @map("us_password") @db.VarChar(255)
+    fname     String     @map("us_fname") @db.VarChar(100)
+    lname     String     @map("us_lname") @db.VarChar(100)
+    phone     String     @unique @map("us_phone") @db.VarChar(10)
+    gender    Gender?    @map("us_gender")
+    status    UserStatus @default(ACTIVE) @map("us_status")
+    isDeleted Boolean    @default(false) @map("us_is_deleted")
+    deleteAt  DateTime?  @map("us_delete_at") @db.Timestamp(0)
 
-/**
- * คำอธิบาย : เก็บข้อมูลกิจกรรมย่อยภายใน Activity
- * Input : activityId, วันที่, เวลาเริ่ม, เวลาสิ้นสุด, รายละเอียด
- * Output : รายการกิจกรรมย่อยของ Activity
- */
-model ActivitySchedule {
-  id            Int      @id @default(autoincrement()) @map("as_id")
-  activityId    Int      @map("as_activity_id")
-  title         String?  @map("as_title") @db.VarChar(150)
-  description   String?  @map("as_description") @db.VarChar(500)
-  startDateTime DateTime @map("as_start_datetime") @db.DateTime
-  endDateTime   DateTime @map("as_end_datetime") @db.DateTime
+    // Relations
+    role              Role       @relation(fields: [roleId], references: [id])
+    createdActivities Activity[] @relation("CreatedActivity")
+    updatedActivities Activity[] @relation("UpdatedActivity")
 
-  // Relations
-  activity Activity @relation(fields: [activityId], references: [id], onDelete: Cascade)
+    @@index([roleId])
+    @@map("users")
+  }
 
-  @@index([activityId])
-  @@index([startDateTime])
-  @@map("activity_schedules")
-}
+  /**
+  * คำอธิบาย : เก็บ role ของระบบ
+  * Input : SUPERADMIN ADMIN
+  * Output : กำหนดสิทธิ์ผู้ใช้งาน
+  */
+  model Role {
+    id   Int    @id @default(autoincrement()) @map("re_id")
+    name String @unique @map("re_name") @db.VarChar(45)
 
-/**
- * คำอธิบาย : เก็บข้อมูลสถานที่จัดกิจกรรม
- * Input : ชื่อสถานที่, ที่อยู่, พิกัด lat lng
- * Output : ข้อมูลสถานที่สำหรับ activity
- */
-model Location {
-  id          Int     @id @default(autoincrement()) @map("lt_id")
-  name        String  @map("lt_name") @db.VarChar(150)
-  zone        String  @map("lt_zone") @db.VarChar(50)
-  province    String  @map("lt_province") @db.VarChar(100)
-  district    String  @map("lt_district") @db.VarChar(100)
-  subDistrict String  @map("lt_sub_district") @db.VarChar(100)
-  detail      String? @map("lt_detail") @db.VarChar(500)
-  latitude    Float   @map("lt_latitude") @db.Double
-  longitude   Float   @map("lt_longitude") @db.Double
+    // Relations
+    users User[]
 
-  // Relations
-  activities Activity[]
+    @@map("roles")
+  }
 
-  @@index([province])
-  @@index([zone])
-  @@map("locations")
-}
+  /**
+  * คำอธิบาย : เก็บข้อมูล activity
+  * Input : locationId, createById, name, price, status
+  * Output : activity
+  */
+  model Activity {
+    id             Int                    @id @default(autoincrement()) @map("pk_id")
+    locationId     Int?                   @map("pk_location_id")
+    createById     Int                    @map("pk_create_by")
+    name           String?                @map("pk_name") @db.VarChar(100)
+    tagline        String?                @map("pk_tagline") @db.VarChar(500)
+    description    String?                @map("pk_description") @db.VarChar(500)
+    activityType   ActivityType?          @map("pk_activity_type")
+    phone          String?                @map("pk_phone") @db.VarChar(20)
+    lineUrl        String?                @map("pk_line_url") @db.VarChar(255)
+    facebookUrl    String?                @map("pk_facebook_url") @db.VarChar(255)
+    price          Decimal?               @map("pk_price") @db.Decimal(10, 2)
+    statusActivity ActivityPublishStatus  @map("pk_status_activity")
+    statusApprove  ActivityApproveStatus? @map("pk_status_approve")
+    startDate      DateTime?              @map("pk_start_date") @db.DateTime
+    dueDate        DateTime?              @map("pk_due_date") @db.DateTime
+    schedules      ActivitySchedule[]
+    rejectReason   String?                @map("pk_reject_reason") @db.VarChar(100)
+    createdAt      DateTime               @default(now()) @map("pk_created_at") @db.Timestamp(0)
+    updatedById    Int?                   @map("pk_updated_by")
+    updatedAt      DateTime               @updatedAt @map("pk_updated_at") @db.DateTime(0)
+    isDeleted      Boolean                @default(false) @map("pk_is_deleted")
+    deleteAt       DateTime?              @map("pk_delete_at") @db.Timestamp(0)
+    viewCount      Int                    @default(0) @map("pk_view_count")
+
+    // Relations
+    location  Location? @relation(fields: [locationId], references: [id])
+    createdBy User      @relation("CreatedActivity", fields: [createById], references: [id])
+    updatedBy User?     @relation("UpdatedActivity", fields: [updatedById], references: [id])
+
+    activityFile       ActivityFile[]
+
+    @@index([locationId])
+    @@index([createById])
+    @@index([updatedById])
+    @@map("activities")
+  }
+
+  /**
+  * คำอธิบาย : เก็บข้อมูลกิจกรรมย่อยภายใน Activity
+  * Input : activityId, วันที่, เวลาเริ่ม, เวลาสิ้นสุด, รายละเอียด
+  * Output : รายการกิจกรรมย่อยของ Activity
+  */
+  model ActivitySchedule {
+    id            Int      @id @default(autoincrement()) @map("as_id")
+    activityId    Int      @map("as_activity_id")
+    title         String?  @map("as_title") @db.VarChar(150)
+    description   String?  @map("as_description") @db.VarChar(500)
+    startDateTime DateTime @map("as_start_datetime") @db.DateTime
+    endDateTime   DateTime @map("as_end_datetime") @db.DateTime
+
+    // Relations
+    activity Activity @relation(fields: [activityId], references: [id], onDelete: Cascade)
+
+    files ActivityScheduleFile[]
+    
+    @@index([activityId])
+    @@index([startDateTime])
+    @@map("activity_schedules")
+  }
+
+  /**
+  * คำอธิบาย : เก็บข้อมูลสถานที่จัดกิจกรรม
+  * Input : ชื่อสถานที่, ที่อยู่, พิกัด lat lng
+  * Output : ข้อมูลสถานที่สำหรับ activity
+  */
+  model Location {
+    id          Int     @id @default(autoincrement()) @map("lt_id")
+    name        String  @map("lt_name") @db.VarChar(150)
+    zone        String  @map("lt_zone") @db.VarChar(50)
+    province    String  @map("lt_province") @db.VarChar(100)
+    district    String  @map("lt_district") @db.VarChar(100)
+    subDistrict String  @map("lt_sub_district") @db.VarChar(100)
+    detail      String? @map("lt_detail") @db.VarChar(500)
+    latitude    Float   @map("lt_latitude") @db.Double
+    longitude   Float   @map("lt_longitude") @db.Double
+
+    // Relations
+    activities Activity[]
+
+    @@index([province])
+    @@index([zone])
+    @@map("locations")
+  }
