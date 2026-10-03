@@ -4,11 +4,13 @@ import cookieParser from "cookie-parser";
 import cors from "cors";
 import path from "path";
 import { fileURLToPath } from "url";
+import swaggerUi from "swagger-ui-express";
+import { swaggerSpec } from "./swagger.js";
 
 const app = express();
 
 app.use(cors({
-  origin: process.env.FRONTEND_URL, 
+  origin: process.env.FRONTEND_URL,
   credentials: true
 }));
 
@@ -16,15 +18,26 @@ app.use(express.json());
 app.use(cookieParser());
 
 const port = process.env.PORT || 3000;
+
+// API
 app.use("/api", rootRouter);
 
+// Swagger API Documentation
+app.use(
+  "/api-docs",
+  swaggerUi.serve,
+  swaggerUi.setup(swaggerSpec)
+);
 
-// ถ้าใช้ ES Modules (type: "module") ให้ใช้ 2 บรรทัดนี้ช่วยหาพาทปัจจุบัน
+// ES Modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// ชี้เป้าไปที่โฟลเดอร์ uploads ที่อยู่ด้านนอก src ให้ชัดเจน
-app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
+// Static uploads
+app.use(
+  "/uploads",
+  express.static(path.join(__dirname, "../uploads"))
+);
 
 /*
  * คำอธิบาย : เริ่มต้น Server
